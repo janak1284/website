@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 const schedule = [
   { day: "Day 1 - Friday, Oct 15", events: [
@@ -19,9 +19,56 @@ const schedule = [
   ]}
 ];
 
-export default function Schedule() {
+const TimelineNode = ({ ev, isLeft, index, totalEvents, scrollYProgress }) => {
+  // Map this specific node's reveal to a bracket of the overall scroll progress
+  // e.g., if there are 9 events, node 0 reveals from 0.0 to 0.1
+  const start = index / totalEvents;
+  const end = Math.min(1, start + (1 / totalEvents));
+  
+  const opacity = useTransform(scrollYProgress, [start, end], [0, 1]);
+  const y = useTransform(scrollYProgress, [start, end], [20, 0]);
+  const scale = useTransform(scrollYProgress, [start, end], [0, 1]);
+
   return (
-    <section className="relative z-10 py-32 px-6 max-w-5xl mx-auto">
+    <motion.div 
+      style={{ opacity, y }}
+      className={`relative flex items-center justify-start md:justify-between w-full group`}
+    >
+      {/* Timeline Node Point */}
+      <motion.div 
+        style={{ scale }}
+        className="absolute left-0 md:left-1/2 w-3 h-3 rounded-full bg-[#8B5CF6] transform -translate-x-[5px] md:-translate-x-1.5 shadow-[0_0_10px_#8B5CF6] group-hover:scale-150 transition-transform" 
+      />
+      
+      {/* Time Marker */}
+      <div className={`hidden md:block w-5/12 ${isLeft ? 'text-right pr-12' : 'text-left pl-12 order-2'}`}>
+        <span className="text-[#A78BFA] font-display text-xl tracking-wider">{ev.time}</span>
+      </div>
+
+      {/* Content Branch */}
+      <div className={`w-full md:w-5/12 pl-12 md:pl-0 ${isLeft ? 'md:pl-12 order-2' : 'md:pr-12 md:text-right'}`}>
+        <div className="md:hidden text-[#A78BFA] font-display mb-2">{ev.time}</div>
+        <h4 className="text-2xl font-semibold text-white mb-3 font-display">{ev.title}</h4>
+        <p className="text-white/60 leading-relaxed">{ev.desc}</p>
+      </div>
+    </motion.div>
+  );
+};
+
+export default function Schedule() {
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start center", "end center"]
+  });
+
+  const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  
+  let globalEventIndex = 0;
+  const totalEvents = schedule.reduce((acc, day) => acc + day.events.length, 0);
+
+  return (
+    <section ref={containerRef} className="relative z-10 py-32 px-6 max-w-5xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -33,8 +80,14 @@ export default function Schedule() {
       </motion.div>
 
       <div className="relative pl-8 md:pl-0">
-        {/* The central vertical line */}
-        <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-[#8B5CF6]/50 to-transparent transform md:-translate-x-1/2" />
+        {/* The central vertical line background */}
+        <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-white/5 transform md:-translate-x-1/2" />
+        
+        {/* The dynamic glowing scroll line */}
+        <motion.div 
+          style={{ height: lineHeight }}
+          className="absolute left-8 md:left-1/2 top-0 w-px bg-gradient-to-b from-[#8B5CF6] to-[#C026D3] shadow-[0_0_15px_#8B5CF6] transform md:-translate-x-1/2"
+        />
 
         <div className="space-y-24">
           {schedule.map((dayPlan, i) => (
@@ -55,30 +108,16 @@ export default function Schedule() {
               <div className="space-y-16">
                 {dayPlan.events.map((ev, j) => {
                   const isLeft = j % 2 === 0;
+                  const currentIndex = globalEventIndex++;
                   return (
-                    <motion.div 
+                    <TimelineNode 
                       key={j}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: 0.1 }}
-                      className={`relative flex items-center justify-start md:justify-between w-full group`}
-                    >
-                      {/* Timeline Node Point */}
-                      <div className="absolute left-0 md:left-1/2 w-3 h-3 rounded-full bg-[#8B5CF6] transform -translate-x-[5px] md:-translate-x-1.5 shadow-[0_0_10px_#8B5CF6] group-hover:scale-150 transition-transform" />
-                      
-                      {/* Time Marker */}
-                      <div className={`hidden md:block w-5/12 ${isLeft ? 'text-right pr-12' : 'text-left pl-12 order-2'}`}>
-                        <span className="text-[#A78BFA] font-display text-xl tracking-wider">{ev.time}</span>
-                      </div>
-
-                      {/* Content Branch */}
-                      <div className={`w-full md:w-5/12 pl-12 md:pl-0 ${isLeft ? 'md:pl-12 order-2' : 'md:pr-12 md:text-right'}`}>
-                        <div className="md:hidden text-[#A78BFA] font-display mb-2">{ev.time}</div>
-                        <h4 className="text-2xl font-semibold text-white mb-3 font-display">{ev.title}</h4>
-                        <p className="text-white/60 leading-relaxed">{ev.desc}</p>
-                      </div>
-                    </motion.div>
+                      ev={ev}
+                      isLeft={isLeft}
+                      index={currentIndex}
+                      totalEvents={totalEvents}
+                      scrollYProgress={scrollYProgress}
+                    />
                   );
                 })}
               </div>
