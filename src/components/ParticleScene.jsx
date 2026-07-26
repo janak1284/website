@@ -1,57 +1,52 @@
 import React, { useRef, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { useScroll } from 'framer-motion';
+import { useFrame, useThree } from '@react-three/fiber';
+import { useReducedMotion } from 'framer-motion';
 import * as THREE from 'three';
 
 const PARTICLE_COUNT = 4000;
+const dummy = new THREE.Object3D();
+const tempColor = new THREE.Color();
+const colorTop = new THREE.Color('#8B5CF6'); // Primary purple
+const colorBottom = new THREE.Color('#C026D3'); // Highlight magenta
+const colorDeep = new THREE.Color('#4C1D95'); // Deep indigo
 
 function createParticleData() {
   const spherePositions = new Float32Array(PARTICLE_COUNT * 3);
   const helixPositions = new Float32Array(PARTICLE_COUNT * 3);
   const colors = new Float32Array(PARTICLE_COUNT * 3);
   
-  const colorTop = new THREE.Color('#ff4d3d'); // Warm red/orange
-  const colorBottom = new THREE.Color('#7d5bff'); // Cool blue/violet
-  const tempColor = new THREE.Color();
-
-  // Sphere: Fibonacci sphere for even distribution
   const phi = Math.PI * (3 - Math.sqrt(5));
   for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2; // y goes from 1 to -1
+    const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2;
     const radius = Math.sqrt(1 - y * y);
     const theta = phi * i;
 
     const x = Math.cos(theta) * radius;
     const z = Math.sin(theta) * radius;
 
-    // Scale sphere up a bit
     const sphereRadius = 2.5;
     spherePositions[i * 3] = x * sphereRadius;
     spherePositions[i * 3 + 1] = y * sphereRadius;
     spherePositions[i * 3 + 2] = z * sphereRadius;
 
-    // Helix: Two intertwined strands + some scatter for volume
-    const t = i / PARTICLE_COUNT; // 0 to 1
+    const t = i / PARTICLE_COUNT;
     const helixRadius = 1.2;
     const helixHeight = 15;
     const turns = 4;
     const angle = t * Math.PI * 2 * turns;
     const strandOffset = (i % 2 === 0) ? 0 : Math.PI;
     
-    // Add some random scatter to make it look like a particle cloud rather than a thin line
     const scatterR = (Math.random() - 0.5) * 0.4;
     const scatterAngle = Math.random() * Math.PI * 2;
 
     const hX = Math.cos(angle + strandOffset) * helixRadius + Math.cos(scatterAngle) * scatterR;
-    const hY = (t - 0.5) * helixHeight; // -7.5 to 7.5
+    const hY = (t - 0.5) * helixHeight;
     const hZ = Math.sin(angle + strandOffset) * helixRadius + Math.sin(scatterAngle) * scatterR;
 
     helixPositions[i * 3] = hX;
-    helixPositions[i * 3 + 1] = -hY; // invert so t=0 is at the top
+    helixPositions[i * 3 + 1] = -hY;
     helixPositions[i * 3 + 2] = hZ;
 
-    // Colors: Gradient based on Y position (using sphere Y as base)
-    // Map y from [-1, 1] to [0, 1]
     const colorT = (y + 1) / 2;
     tempColor.lerpColors(colorBottom, colorTop, colorT);
     colors[i * 3] = tempColor.r;
@@ -63,86 +58,120 @@ function createParticleData() {
 }
 
 export function ParticleScene({ scrollYProgress }) {
-  const pointsRef = useRef();
+  const meshRef = useRef();
+  const groupRef = useRef();
+  const prefersReducedMotion = useReducedMotion();
+  const { viewport } = useThree();
   
   const { spherePositions, helixPositions, colors } = useMemo(() => createParticleData(), []);
-  
-  // Custom geometry to hold both states and current state
-  const geometryRef = useRef();
-  const currentPositions = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []);
+  const displacements = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []); // Stores current x, y, z displacement for each particle
 
   useFrame((state, delta) => {
-    if (!pointsRef.current || !geometryRef.current) return;
+    if (!meshRef.current || !groupRef.current) return;
 
-    // scrollYProgress is a MotionValue
     const scroll = scrollYProgress.get(); 
+    // Smooth transition from sphere to helix across the first half, then slowly expand/twist
+    const morphTarget = prefersReducedMotion ? 0 : Math.min(1, scroll * 2.5);
+    const pulseIntensity = prefersReducedMotion ? 0 : scroll;
     
-    // We want the morph to happen between scroll 0.1 and 0.4 (roughly hero to proof section)
-    const morphTarget = Math.max(0, Math.min(1, (scroll - 0.1) * (1 / 0.3)));
+    if (!prefersReducedMotion) {
+      groupRef.current.rotation.y += delta * (0.05 + scroll * 0.1);
+    }
     
-    // Base rotation
-    pointsRef.current.rotation.y += delta * 0.05;
-    
-    // Additive noise and lerp
     const time = state.clock.getElapsedTime();
-    const positions = geometryRef.current.attributes.position.array;
+    
+    // Map pointer to 3D space roughly
+    const pointer3D = new THREE.Vector3(
+      (state.pointer.x * viewport.width) / 2,
+      (state.pointer.y * viewport.height) / 2,
+      0
+    );
+
+    const baseZ = 6;
+    const helixZ = 5;
+    state.camera.position.z = THREE.MathUtils.lerp(baseZ, helixZ, morphTarget);
+
+    if (!prefersReducedMotion) {
+      const mouseX = (state.pointer.x * Math.PI) / 10;
+      const mouseY = (state.pointer.y * Math.PI) / 10;
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, mouseY, 0.05);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, groupRef.current.rotation.y + mouseX * 0.01, 0.05);
+    }
+
+    // Sine wave breathing / resonance pulse grows with scroll
+    const breathingAmplitude = prefersReducedMotion ? 0 : 0.05 + morphTarget * 0.1 + pulseIntensity * 0.2;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const idx = i * 3;
       
-      // Lerp between sphere and helix
-      const targetX = THREE.MathUtils.lerp(spherePositions[idx], helixPositions[idx], morphTarget);
-      const targetY = THREE.MathUtils.lerp(spherePositions[idx + 1], helixPositions[idx + 1], morphTarget);
-      const targetZ = THREE.MathUtils.lerp(spherePositions[idx + 2], helixPositions[idx + 2], morphTarget);
+      let targetX = THREE.MathUtils.lerp(spherePositions[idx], helixPositions[idx], morphTarget);
+      let targetY = THREE.MathUtils.lerp(spherePositions[idx + 1], helixPositions[idx + 1], morphTarget);
+      let targetZ = THREE.MathUtils.lerp(spherePositions[idx + 2], helixPositions[idx + 2], morphTarget);
       
-      // Add subtle noise/breathing
-      const noise = Math.sin(time * 2 + i * 0.1) * 0.05 * (1 - morphTarget); // Less noise in helix form
+      if (!prefersReducedMotion) {
+        // Continuous idle resonance wave
+        const distFromCenter = Math.sqrt(targetX * targetX + targetY * targetY + targetZ * targetZ);
+        const wave = Math.sin(time * 3 - distFromCenter * 2 + scroll * 10) * breathingAmplitude;
+        
+        const dirX = targetX / (distFromCenter || 1);
+        const dirY = targetY / (distFromCenter || 1);
+        const dirZ = targetZ / (distFromCenter || 1);
+        
+        targetX += dirX * wave;
+        targetY += dirY * wave;
+        targetZ += dirZ * wave;
+
+        // Pointer Repel
+        const dx = targetX - pointer3D.x;
+        const dy = targetY - pointer3D.y;
+        const distToP = Math.sqrt(dx * dx + dy * dy);
+        const repelRadius = 2.0;
+
+        let forceX = 0;
+        let forceY = 0;
+
+        if (distToP < repelRadius) {
+          const force = (repelRadius - distToP) / repelRadius; // 0 to 1
+          forceX = (dx / distToP) * force * 1.5;
+          forceY = (dy / distToP) * force * 1.5;
+        }
+
+        // Ease displacements
+        displacements[idx] = THREE.MathUtils.lerp(displacements[idx], forceX, 0.1);
+        displacements[idx + 1] = THREE.MathUtils.lerp(displacements[idx + 1], forceY, 0.1);
+
+        targetX += displacements[idx];
+        targetY += displacements[idx + 1];
+      }
+
+      dummy.position.set(targetX, targetY, targetZ);
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
       
-      positions[idx] = targetX + (targetX > 0 ? noise : -noise);
-      positions[idx + 1] = targetY + (targetY > 0 ? noise : -noise);
-      positions[idx + 2] = targetZ + (targetZ > 0 ? noise : -noise);
+      // Shift color to deeper indigo based on scroll
+      tempColor.setRGB(colors[idx], colors[idx+1], colors[idx+2]);
+      tempColor.lerp(colorDeep, scroll * 0.7);
+      meshRef.current.setColorAt(i, tempColor);
     }
     
-    geometryRef.current.attributes.position.needsUpdate = true;
-    
-    // Dolly camera: move forward as we morph
-    const baseZ = 6;
-    const helixZ = 5;
-    state.camera.position.z = THREE.MathUtils.lerp(baseZ, helixZ, morphTarget);
-    
-    // Tilt towards mouse
-    const mouseX = (state.pointer.x * Math.PI) / 10;
-    const mouseY = (state.pointer.y * Math.PI) / 10;
-    
-    pointsRef.current.rotation.x = THREE.MathUtils.lerp(pointsRef.current.rotation.x, mouseY, 0.05);
-    pointsRef.current.rotation.y = THREE.MathUtils.lerp(pointsRef.current.rotation.y, pointsRef.current.rotation.y + mouseX * 0.01, 0.05);
+    meshRef.current.instanceMatrix.needsUpdate = true;
+    if (meshRef.current.instanceColor) {
+      meshRef.current.instanceColor.needsUpdate = true;
+    }
   });
 
   return (
-    <points ref={pointsRef}>
-      <bufferGeometry ref={geometryRef}>
-        <bufferAttribute
-          attach="attributes-position"
-          count={PARTICLE_COUNT}
-          array={currentPositions}
-          itemSize={3}
-          usage={THREE.DynamicDrawUsage}
+    <group ref={groupRef}>
+      <instancedMesh ref={meshRef} args={[null, null, PARTICLE_COUNT]}>
+        <sphereGeometry args={[0.015, 4, 4]} />
+        <meshBasicMaterial 
+          transparent
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+          opacity={0.8}
+          toneMapped={false}
         />
-        <bufferAttribute
-          attach="attributes-color"
-          count={PARTICLE_COUNT}
-          array={colors}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.03}
-        vertexColors
-        transparent
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-        opacity={0.8}
-      />
-    </points>
+      </instancedMesh>
+    </group>
   );
 }
