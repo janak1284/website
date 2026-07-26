@@ -6,7 +6,7 @@ export default function Venue() {
   return (
     <section className="relative z-10 py-32 border-y border-white/5 bg-[#0A0710]/50 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8 items-center">
-        
+
         {/* Typographic Address Block */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -29,7 +29,7 @@ export default function Venue() {
                 <p className="text-white/50">128 Tech Boulevard<br />San Francisco, CA 94105</p>
               </div>
             </div>
-            
+
             <div className="flex items-start gap-4">
               <CalendarDays className="w-6 h-6 text-[#8B5CF6] flex-shrink-0 mt-1" />
               <div>
@@ -57,7 +57,7 @@ export default function Venue() {
           <div className="absolute inset-0 bg-[#130d26] z-0 flex items-center justify-center">
             {/* Grid Pattern Background */}
             <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(#8B5CF6 1px, transparent 1px), linear-gradient(90deg, #8B5CF6 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-            
+
             {/* Map Pin UI */}
             <div className="relative z-10 flex flex-col items-center">
               <div className="w-16 h-16 bg-[#8B5CF6]/20 border border-[#8B5CF6] rounded-full flex items-center justify-center mb-4 relative">

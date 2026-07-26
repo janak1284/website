@@ -15,9 +15,9 @@ const vec3 = new THREE.Vector3(); // Reusable vector
 function createParticleData2() {
   const shapes = Array.from({ length: SHAPE_COUNT }, () => new Float32Array(PARTICLE_COUNT * 3));
   const colors = new Float32Array(PARTICLE_COUNT * 3);
-  
+
   const phi = Math.PI * (3 - Math.sqrt(5));
-  
+
   // Pre-calculate clusters for domains (Network)
   const clusters = [
     new THREE.Vector3(3, 2, 0),
@@ -35,29 +35,29 @@ function createParticleData2() {
     const theta = phi * i;
 
     // SHAPE A (Old): Resonance Ring (About & Contact)
-    const ring_r = 6.5; 
+    const ring_r = 6.5;
     const noise = Math.sin(theta * 6) * Math.cos(y * 8) * 0.6 + Math.sin(theta * 3 + y * 4) * 0.8;
     const final_r = ring_r + noise;
     const ring_x = Math.cos(theta) * radius * final_r;
     const ring_y = y * final_r;
     const ring_z = Math.sin(theta) * radius * final_r;
-    
+
     // Assign to About (1), and Contact (9)
     shapes[1][idx] = ring_x * 1.2; shapes[1][idx + 1] = ring_y * 1.2; shapes[1][idx + 2] = ring_z * 1.2;
     shapes[9][idx] = ring_x; shapes[9][idx + 1] = ring_y; shapes[9][idx + 2] = ring_z;
 
-    // SHAPE A (New): Thin Torus for Hero text "O" alignment
-    // Scaled down to fit precisely behind the SVG O glyph
-    const thin_ring_r = 0.4;
-    const thin_tube_r = 0.015; 
-    const thin_u = Math.random() * Math.PI * 2;
-    const thin_v = Math.random() * Math.PI * 2;
+    // SHAPE A (New): Small Torus for Hero text "O" alignment
+    const thin_ring_r = 2.1;
+    const thin_tube_r = 0.15;
+    // Use deterministic mapping so they expand radially and smoothly without leaving sparse edges
+    const thin_u = theta;
+    const thin_v = y * Math.PI * 4;
     const thin_x = (thin_ring_r + thin_tube_r * Math.cos(thin_v)) * Math.cos(thin_u);
     const thin_y = (thin_ring_r + thin_tube_r * Math.cos(thin_v)) * Math.sin(thin_u);
     const thin_z = thin_tube_r * Math.sin(thin_v);
-    
-    // Assign to Hero (0), shift left to align with "O" in RESONANCE
-    shapes[0][idx] = thin_x - 0.48; shapes[0][idx + 1] = thin_y; shapes[0][idx + 2] = thin_z;
+
+    // Assign to Hero (0), perfectly centered
+    shapes[0][idx] = thin_x; shapes[0][idx + 1] = thin_y; shapes[0][idx + 2] = thin_z;
 
     // SHAPE B: Domain Clusters (ProblemStatements)
     const cluster = clusters[i % 6];
@@ -67,29 +67,29 @@ function createParticleData2() {
     const clus_x = cluster.x * 1.5 + Math.sin(c_phi) * Math.cos(c_theta) * c_r;
     const clus_y = cluster.y * 1.5 + Math.sin(c_phi) * Math.sin(c_theta) * c_r;
     const clus_z = cluster.z * 1.5 + Math.cos(c_phi) * c_r;
-    
+
     // Assign to Domains (2)
     shapes[2][idx] = clus_x; shapes[2][idx + 1] = clus_y; shapes[2][idx + 2] = clus_z;
 
     // SHAPE C: Thick Double Helix (Prizes, Qualification, Schedule)
     const h_t = i / PARTICLE_COUNT;
-    const h_y = (h_t - 0.5) * 16; 
+    const h_y = (h_t - 0.5) * 16;
     const strand = (i % 2 === 0) ? 0 : Math.PI;
-    const h_ang = h_y * 1.5; 
+    const h_ang = h_y * 1.5;
     const h_rad = 2.5;
     const cx = Math.cos(h_ang + strand) * h_rad;
     const cz = Math.sin(h_ang + strand) * h_rad;
-    const thickness = 0.8; 
+    const thickness = 0.8;
     const u = Math.random();
     const v = Math.random();
     const t_theta = u * 2.0 * Math.PI;
     const t_phi = Math.acos(2.0 * v - 1.0);
-    const t_r = Math.cbrt(Math.random()) * thickness; 
-    
+    const t_r = Math.cbrt(Math.random()) * thickness;
+
     const hel_x = cx + Math.sin(t_phi) * Math.cos(t_theta) * t_r;
-    const hel_y = -h_y + Math.cos(t_phi) * t_r; 
+    const hel_y = -h_y + Math.cos(t_phi) * t_r;
     const hel_z = cz + Math.sin(t_phi) * Math.sin(t_theta) * t_r;
-    
+
     // Assign to Prizes (3), Qualification (4), Schedule (5)
     shapes[3][idx] = hel_x; shapes[3][idx + 1] = hel_y; shapes[3][idx + 2] = hel_z;
     shapes[4][idx] = hel_x; shapes[4][idx + 1] = hel_y; shapes[4][idx + 2] = hel_z;
@@ -102,7 +102,7 @@ function createParticleData2() {
     const grid_x = (gx / gridDim - 0.5) * 20 + (Math.random() - 0.5) * 0.2;
     const grid_y = (gy / gridDim - 0.5) * 20 + (Math.random() - 0.5) * 0.2;
     const grid_z = Math.sin(grid_x * 0.5) * Math.cos(grid_y * 0.5) * 2; // Wavy landscape
-    
+
     // Assign to Speakers (6), Sponsors (7), Venue (8)
     shapes[6][idx] = grid_x; shapes[6][idx + 1] = grid_z - 3; shapes[6][idx + 2] = grid_y; // Rotated to lie flat
     shapes[7][idx] = grid_x; shapes[7][idx + 1] = grid_z - 3; shapes[7][idx + 2] = grid_y;
@@ -124,9 +124,9 @@ export function ParticleScene({ scrollYProgress }) {
   const groupRef = useRef();
   const prefersReducedMotion = useReducedMotion();
   const { viewport } = useThree();
-  
+
   const { shapes, colors } = useMemo(() => createParticleData2(), []);
-  const displacements = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []); 
+  const displacements = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []);
   const sectionOffsets = useRef([]);
 
   React.useEffect(() => {
@@ -139,7 +139,7 @@ export function ParticleScene({ scrollYProgress }) {
       });
       sectionOffsets.current = offsets;
     };
-    
+
     updateOffsets();
     const interval = setInterval(updateOffsets, 1000);
     window.addEventListener('resize', updateOffsets);
@@ -152,46 +152,49 @@ export function ParticleScene({ scrollYProgress }) {
   useFrame((state, delta) => {
     if (!meshRef.current || !groupRef.current) return;
 
-    const scroll = scrollYProgress.get(); 
-    
+    const scroll = scrollYProgress.get();
+
     // Determine Shape Interpolation
     const offsets = sectionOffsets.current;
     let currentShapeIdx = 0;
     let nextShapeIdx = 0;
     let lerpFactor = 0;
-    
+
     // We expect exactly 10 sections (Hero -> Contact)
     if (offsets.length === SHAPE_COUNT) {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
-      
+
       // Trigger offset: Middle of the screen
       const triggerOffset = scrollY + (viewportHeight / 2);
-      
+
       for (let i = 0; i < offsets.length; i++) {
         if (triggerOffset >= offsets[i]) {
           currentShapeIdx = i;
         }
       }
-      
+
       nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
-      
+
       if (currentShapeIdx !== nextShapeIdx) {
         const start = offsets[currentShapeIdx];
         const end = offsets[nextShapeIdx];
         const sectionHeight = end - start;
-        
+
         let progress;
         if (currentShapeIdx === 0) {
-          progress = scrollY / (sectionHeight || 1);
+          // The hero section only spans half the scroll distance before switching to shape 1.
+          // Multiply by 2 (or divide sectionHeight by 2) to complete the transition in time.
+          progress = scrollY / ((sectionHeight / 2) || 1);
         } else {
           progress = (triggerOffset - start) / (sectionHeight || 1);
         }
         progress = Math.max(0, Math.min(1, progress));
-        
-        // Hold shape for the first 40% of the section, then perform a slow fluid transition over the remaining 60%
-        if (progress > 0.4) {
-          const p = (progress - 0.4) / 0.6;
+
+        // For the hero section transition, hold less and transition slower over more scroll distance
+        let holdThreshold = currentShapeIdx === 0 ? 0.1 : 0.4;
+        if (progress > holdThreshold) {
+          const p = (progress - holdThreshold) / (1 - holdThreshold);
           lerpFactor = p * p * (3 - 2 * p);
         } else {
           lerpFactor = 0.0;
@@ -202,11 +205,10 @@ export function ParticleScene({ scrollYProgress }) {
       const sectionFloat = Math.max(0, Math.min(SHAPE_COUNT - 1.001, scroll * SHAPE_COUNT));
       currentShapeIdx = Math.floor(sectionFloat);
       nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
-      
+
       const rawLerp = sectionFloat - currentShapeIdx;
-      let holdThreshold = 0.4;
-      if (currentShapeIdx === 0) holdThreshold = 0.8;
-      
+      let holdThreshold = currentShapeIdx === 0 ? 0.1 : 0.4;
+
       if (rawLerp > holdThreshold) {
         const p = (rawLerp - holdThreshold) / (1 - holdThreshold);
         lerpFactor = p * p * (3 - 2 * p);
@@ -214,19 +216,19 @@ export function ParticleScene({ scrollYProgress }) {
         lerpFactor = 0.0;
       }
     }
-    
+
     // Group Rotation & Sync for Schedule (Idx 5)
     let scrollRotationOffset = 0;
     if (offsets.length > 5) {
       const scrollY = window.scrollY;
       const viewportHeight = window.innerHeight;
       const triggerOffset = scrollY + (viewportHeight / 2);
-      
+
       const start = offsets[5];
       const end = offsets[6] || (start + viewportHeight * 2);
       const sectionHeight = end - start;
       let localProgress = (triggerOffset - start) / (sectionHeight || 1);
-      
+
       localProgress = Math.max(0, Math.min(1, localProgress));
       scrollRotationOffset = localProgress * Math.PI * 4;
     }
@@ -234,9 +236,9 @@ export function ParticleScene({ scrollYProgress }) {
     if (!prefersReducedMotion) {
       const mouseX = (state.pointer.x * Math.PI) / 10;
       const mouseY = (state.pointer.y * Math.PI) / 10;
-      
+
       const targetRotationY = (state.clock.elapsedTime * 0.05) + scrollRotationOffset + mouseX;
-      
+
       groupRef.current.rotation.y = THREE.MathUtils.damp(
         groupRef.current.rotation.y,
         targetRotationY,
@@ -261,7 +263,7 @@ export function ParticleScene({ scrollYProgress }) {
     vec3.sub(state.camera.position).normalize();
     const distanceToZ0 = (0 - state.camera.position.z) / vec3.z;
     const pointer3DWorld = new THREE.Vector3().copy(state.camera.position).add(vec3.multiplyScalar(distanceToZ0));
-    
+
     // Convert world pointer to group's local space for accurate repel against rotated particles
     const pointerLocal = groupRef.current.worldToLocal(pointer3DWorld.clone());
 
@@ -271,18 +273,18 @@ export function ParticleScene({ scrollYProgress }) {
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const idx = i * 3;
-      
+
       // Interpolate Target Position
       let targetX = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx], shapes[nextShapeIdx][idx], lerpFactor);
       let targetY = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 1], shapes[nextShapeIdx][idx + 1], lerpFactor);
       let targetZ = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 2], shapes[nextShapeIdx][idx + 2], lerpFactor);
-      
+
       if (!prefersReducedMotion) {
         // Continuous additive idle breathing wave
         const distFromCenter = Math.sqrt(targetX * targetX + targetY * targetY + targetZ * targetZ);
         const activeBreathing = (currentShapeIdx === 0) ? lerpFactor * breathingAmplitude : breathingAmplitude;
         const wave = Math.sin(time * 3 - distFromCenter * 2 + scroll * 15) * activeBreathing;
-        
+
         targetX += (targetX / (distFromCenter || 1)) * wave;
         targetY += (targetY / (distFromCenter || 1)) * wave;
         targetZ += (targetZ / (distFromCenter || 1)) * wave;
@@ -319,18 +321,18 @@ export function ParticleScene({ scrollYProgress }) {
         if (currentShapeIdx === 0) scale = lerpFactor;
         else if (currentShapeIdx !== 0 && nextShapeIdx === 0) scale = 1 - lerpFactor;
       }
-      
+
       dummy.position.set(targetX, targetY, targetZ);
       dummy.scale.set(scale, scale, scale);
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
-      
+
       // Shift color to deeper indigo based on scroll progress
-      tempColor.setRGB(colors[idx], colors[idx+1], colors[idx+2]);
+      tempColor.setRGB(colors[idx], colors[idx + 1], colors[idx + 2]);
       tempColor.lerp(colorDeep, scroll * 0.8);
       meshRef.current.setColorAt(i, tempColor);
     }
-    
+
     meshRef.current.instanceMatrix.needsUpdate = true;
     if (meshRef.current.instanceColor) {
       meshRef.current.instanceColor.needsUpdate = true;
@@ -341,7 +343,7 @@ export function ParticleScene({ scrollYProgress }) {
     <group ref={groupRef}>
       <instancedMesh ref={meshRef} args={[null, null, PARTICLE_COUNT]}>
         <sphereGeometry args={[0.015, 4, 4]} />
-        <meshBasicMaterial 
+        <meshBasicMaterial
           transparent
           depthWrite={false}
           blending={THREE.AdditiveBlending}
