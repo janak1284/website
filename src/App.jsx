@@ -1,8 +1,10 @@
 import React, { useRef, useState, useEffect, Suspense, lazy } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useScroll, motion, useMotionValueEvent } from 'framer-motion';
+import { useLocation, Navigate } from 'react-router-dom';
 
 import { ParticleScene } from './components/ParticleScene';
+import { FlowFieldShader } from './components/FlowFieldShader';
 import { Hero } from './components/Hero';
 import { Button } from './components/ui/Button';
 
@@ -18,11 +20,18 @@ const Venue = lazy(() => import('./components/Venue'));
 const Contact = lazy(() => import('./components/Contact'));
 
 function App() {
+  const location = useLocation();
+  const pathname = location.pathname;
+
   const containerRef = useRef(null);
   const { scrollYProgress, scrollY } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
+
+  if (pathname === '/') {
+    return <Navigate to="/shader" replace />;
+  }
 
   const [mountCanvas, setMountCanvas] = useState(false);
   const [showNav, setShowNav] = useState(false);
@@ -60,7 +69,7 @@ function App() {
 
       {/* Fixed Canvas Background */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        {mountCanvas && (
+        {mountCanvas && pathname !== '/minimal' && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -68,7 +77,8 @@ function App() {
             className="w-full h-full"
           >
             <Canvas camera={{ position: [0, 0, 6], fov: 45 }} dpr={[1, 1.5]}>
-              <ParticleScene scrollYProgress={scrollYProgress} />
+              {pathname === '/particles' && <ParticleScene scrollYProgress={scrollYProgress} />}
+              {pathname === '/shader' && <FlowFieldShader scrollYProgress={scrollYProgress} />}
             </Canvas>
           </motion.div>
         )}

@@ -3,8 +3,7 @@ import { motion, useTransform } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
-
-const EASE = [0.16, 1, 0.3, 1];
+import { ResonanceWordmark } from './ResonanceWordmark';
 
 const containerVariants = {
   hidden: {},
@@ -47,13 +46,9 @@ export function Hero({ scrollYProgress }) {
             <Badge icon={Sparkles}>Innovate. Collaborate. Impact.</Badge>
           </motion.div>
 
-          <motion.h1 
-            variants={fadeUpVariants}
-            className="text-6xl md:text-8xl lg:text-[7.5rem] font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/70 mb-4 tracking-[0.2em] font-['Orbitron']"
-            style={{ textShadow: '0 0 40px rgba(139, 92, 246, 0.5)' }}
-          >
-            RESONANCE
-          </motion.h1>
+          <motion.div variants={fadeUpVariants} className="w-full mb-8">
+            <ResonanceWordmark />
+          </motion.div>
 
           <motion.div variants={fadeUpVariants} className="flex items-center gap-4 mb-8">
             <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#8B5CF6]"></div>

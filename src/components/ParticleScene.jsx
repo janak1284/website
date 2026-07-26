@@ -12,7 +12,7 @@ const colorBottom = new THREE.Color('#C026D3'); // Highlight magenta
 const colorDeep = new THREE.Color('#4C1D95'); // Deep indigo
 const vec3 = new THREE.Vector3(); // Reusable vector
 
-function createParticleData() {
+function createParticleData2() {
   const shapes = Array.from({ length: SHAPE_COUNT }, () => new Float32Array(PARTICLE_COUNT * 3));
   const colors = new Float32Array(PARTICLE_COUNT * 3);
   
@@ -34,8 +34,7 @@ function createParticleData() {
     const radius = Math.sqrt(1 - y * y);
     const theta = phi * i;
 
-    // SHAPE A: Resonance Ring (Hero & Contact)
-    // A massive glowing hollow torus
+    // SHAPE A (Old): Resonance Ring (About & Contact)
     const ring_r = 6.5; 
     const noise = Math.sin(theta * 6) * Math.cos(y * 8) * 0.6 + Math.sin(theta * 3 + y * 4) * 0.8;
     const final_r = ring_r + noise;
@@ -43,10 +42,22 @@ function createParticleData() {
     const ring_y = y * final_r;
     const ring_z = Math.sin(theta) * radius * final_r;
     
-    // Assign to Hero (0), About (1), and Contact (9)
-    shapes[0][idx] = ring_x; shapes[0][idx + 1] = ring_y; shapes[0][idx + 2] = ring_z;
-    shapes[1][idx] = ring_x * 1.2; shapes[1][idx + 1] = ring_y * 1.2; shapes[1][idx + 2] = ring_z * 1.2; // Slightly expanded for About
+    // Assign to About (1), and Contact (9)
+    shapes[1][idx] = ring_x * 1.2; shapes[1][idx + 1] = ring_y * 1.2; shapes[1][idx + 2] = ring_z * 1.2;
     shapes[9][idx] = ring_x; shapes[9][idx + 1] = ring_y; shapes[9][idx + 2] = ring_z;
+
+    // SHAPE A (New): Thin Torus for Hero text "O" alignment
+    // Scaled down to fit precisely behind the SVG O glyph
+    const thin_ring_r = 0.4;
+    const thin_tube_r = 0.015; 
+    const thin_u = Math.random() * Math.PI * 2;
+    const thin_v = Math.random() * Math.PI * 2;
+    const thin_x = (thin_ring_r + thin_tube_r * Math.cos(thin_v)) * Math.cos(thin_u);
+    const thin_y = (thin_ring_r + thin_tube_r * Math.cos(thin_v)) * Math.sin(thin_u);
+    const thin_z = thin_tube_r * Math.sin(thin_v);
+    
+    // Assign to Hero (0), shift left to align with "O" in RESONANCE
+    shapes[0][idx] = thin_x - 0.48; shapes[0][idx + 1] = thin_y; shapes[0][idx + 2] = thin_z;
 
     // SHAPE B: Domain Clusters (ProblemStatements)
     const cluster = clusters[i % 6];
@@ -114,7 +125,7 @@ export function ParticleScene({ scrollYProgress }) {
   const prefersReducedMotion = useReducedMotion();
   const { viewport } = useThree();
   
-  const { shapes, colors } = useMemo(() => createParticleData(), []);
+  const { shapes, colors } = useMemo(() => createParticleData2(), []);
   const displacements = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []); 
   const sectionOffsets = useRef([]);
 
@@ -170,7 +181,12 @@ export function ParticleScene({ scrollYProgress }) {
         const end = offsets[nextShapeIdx];
         const sectionHeight = end - start;
         
-        let progress = (triggerOffset - start) / (sectionHeight || 1);
+        let progress;
+        if (currentShapeIdx === 0) {
+          progress = scrollY / (sectionHeight || 1);
+        } else {
+          progress = (triggerOffset - start) / (sectionHeight || 1);
+        }
         progress = Math.max(0, Math.min(1, progress));
         
         // Hold shape for the first 40% of the section, then perform a slow fluid transition over the remaining 60%
@@ -188,8 +204,11 @@ export function ParticleScene({ scrollYProgress }) {
       nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
       
       const rawLerp = sectionFloat - currentShapeIdx;
-      if (rawLerp > 0.4) {
-        const p = (rawLerp - 0.4) / 0.6;
+      let holdThreshold = 0.4;
+      if (currentShapeIdx === 0) holdThreshold = 0.8;
+      
+      if (rawLerp > holdThreshold) {
+        const p = (rawLerp - holdThreshold) / (1 - holdThreshold);
         lerpFactor = p * p * (3 - 2 * p);
       } else {
         lerpFactor = 0.0;
@@ -261,7 +280,8 @@ export function ParticleScene({ scrollYProgress }) {
       if (!prefersReducedMotion) {
         // Continuous additive idle breathing wave
         const distFromCenter = Math.sqrt(targetX * targetX + targetY * targetY + targetZ * targetZ);
-        const wave = Math.sin(time * 3 - distFromCenter * 2 + scroll * 15) * breathingAmplitude;
+        const activeBreathing = (currentShapeIdx === 0) ? lerpFactor * breathingAmplitude : breathingAmplitude;
+        const wave = Math.sin(time * 3 - distFromCenter * 2 + scroll * 15) * activeBreathing;
         
         targetX += (targetX / (distFromCenter || 1)) * wave;
         targetY += (targetY / (distFromCenter || 1)) * wave;
@@ -275,11 +295,13 @@ export function ParticleScene({ scrollYProgress }) {
 
         let forceX = 0, forceY = 0, forceZ = 0;
 
+        const activeRepelStrength = (currentShapeIdx === 0) ? lerpFactor * repelStrength : repelStrength;
+
         if (distToP < repelRadius) {
           const force = (repelRadius - distToP) / repelRadius; // 0 to 1
-          forceX = (dx / distToP) * force * repelStrength;
-          forceY = (dy / distToP) * force * repelStrength;
-          forceZ = (dz / distToP) * force * repelStrength;
+          forceX = (dx / distToP) * force * activeRepelStrength;
+          forceY = (dy / distToP) * force * activeRepelStrength;
+          forceZ = (dz / distToP) * force * activeRepelStrength;
         }
 
         // Spring ease the displacement back to 0
@@ -292,7 +314,14 @@ export function ParticleScene({ scrollYProgress }) {
         targetZ += displacements[idx + 2];
       }
 
+      let scale = 1.0;
+      if (i % 4 !== 0) {
+        if (currentShapeIdx === 0) scale = lerpFactor;
+        else if (currentShapeIdx !== 0 && nextShapeIdx === 0) scale = 1 - lerpFactor;
+      }
+      
       dummy.position.set(targetX, targetY, targetZ);
+      dummy.scale.set(scale, scale, scale);
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
       
