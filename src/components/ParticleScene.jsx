@@ -4,57 +4,108 @@ import { useReducedMotion } from 'framer-motion';
 import * as THREE from 'three';
 
 const PARTICLE_COUNT = 4000;
+const SHAPE_COUNT = 10;
 const dummy = new THREE.Object3D();
 const tempColor = new THREE.Color();
 const colorTop = new THREE.Color('#8B5CF6'); // Primary purple
 const colorBottom = new THREE.Color('#C026D3'); // Highlight magenta
 const colorDeep = new THREE.Color('#4C1D95'); // Deep indigo
+const vec3 = new THREE.Vector3(); // Reusable vector
 
 function createParticleData() {
-  const spherePositions = new Float32Array(PARTICLE_COUNT * 3);
-  const helixPositions = new Float32Array(PARTICLE_COUNT * 3);
+  const shapes = Array.from({ length: SHAPE_COUNT }, () => new Float32Array(PARTICLE_COUNT * 3));
   const colors = new Float32Array(PARTICLE_COUNT * 3);
   
   const phi = Math.PI * (3 - Math.sqrt(5));
+  
+  // Pre-calculate clusters for domains (Network)
+  const clusters = [
+    new THREE.Vector3(3, 2, 0),
+    new THREE.Vector3(-3, 2, 1),
+    new THREE.Vector3(2, -2, -2),
+    new THREE.Vector3(-2, -3, 0),
+    new THREE.Vector3(0, 0, 3),
+    new THREE.Vector3(0, 4, -1)
+  ];
+
   for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2;
+    const idx = i * 3;
+    const y = 1 - (i / (PARTICLE_COUNT - 1)) * 2; // -1 to 1
     const radius = Math.sqrt(1 - y * y);
     const theta = phi * i;
 
-    const x = Math.cos(theta) * radius;
-    const z = Math.sin(theta) * radius;
-
-    const sphereRadius = 2.5;
-    spherePositions[i * 3] = x * sphereRadius;
-    spherePositions[i * 3 + 1] = y * sphereRadius;
-    spherePositions[i * 3 + 2] = z * sphereRadius;
-
-    const t = i / PARTICLE_COUNT;
-    const helixRadius = 1.2;
-    const helixHeight = 15;
-    const turns = 4;
-    const angle = t * Math.PI * 2 * turns;
-    const strandOffset = (i % 2 === 0) ? 0 : Math.PI;
+    // SHAPE A: Resonance Ring (Hero & Contact)
+    // A massive glowing hollow torus
+    const ring_r = 6.5; 
+    const noise = Math.sin(theta * 6) * Math.cos(y * 8) * 0.6 + Math.sin(theta * 3 + y * 4) * 0.8;
+    const final_r = ring_r + noise;
+    const ring_x = Math.cos(theta) * radius * final_r;
+    const ring_y = y * final_r;
+    const ring_z = Math.sin(theta) * radius * final_r;
     
-    const scatterR = (Math.random() - 0.5) * 0.4;
-    const scatterAngle = Math.random() * Math.PI * 2;
+    // Assign to Hero (0), About (1), and Contact (9)
+    shapes[0][idx] = ring_x; shapes[0][idx + 1] = ring_y; shapes[0][idx + 2] = ring_z;
+    shapes[1][idx] = ring_x * 1.2; shapes[1][idx + 1] = ring_y * 1.2; shapes[1][idx + 2] = ring_z * 1.2; // Slightly expanded for About
+    shapes[9][idx] = ring_x; shapes[9][idx + 1] = ring_y; shapes[9][idx + 2] = ring_z;
 
-    const hX = Math.cos(angle + strandOffset) * helixRadius + Math.cos(scatterAngle) * scatterR;
-    const hY = (t - 0.5) * helixHeight;
-    const hZ = Math.sin(angle + strandOffset) * helixRadius + Math.sin(scatterAngle) * scatterR;
+    // SHAPE B: Domain Clusters (ProblemStatements)
+    const cluster = clusters[i % 6];
+    const c_theta = Math.random() * Math.PI * 2;
+    const c_phi = Math.acos((Math.random() * 2) - 1);
+    const c_r = Math.random() * 0.8 + (Math.random() > 0.95 ? Math.random() * 2 : 0);
+    const clus_x = cluster.x * 1.5 + Math.sin(c_phi) * Math.cos(c_theta) * c_r;
+    const clus_y = cluster.y * 1.5 + Math.sin(c_phi) * Math.sin(c_theta) * c_r;
+    const clus_z = cluster.z * 1.5 + Math.cos(c_phi) * c_r;
+    
+    // Assign to Domains (2)
+    shapes[2][idx] = clus_x; shapes[2][idx + 1] = clus_y; shapes[2][idx + 2] = clus_z;
 
-    helixPositions[i * 3] = hX;
-    helixPositions[i * 3 + 1] = -hY;
-    helixPositions[i * 3 + 2] = hZ;
+    // SHAPE C: Thick Double Helix (Prizes, Qualification, Schedule)
+    const h_t = i / PARTICLE_COUNT;
+    const h_y = (h_t - 0.5) * 16; 
+    const strand = (i % 2 === 0) ? 0 : Math.PI;
+    const h_ang = h_y * 1.5; 
+    const h_rad = 2.5;
+    const cx = Math.cos(h_ang + strand) * h_rad;
+    const cz = Math.sin(h_ang + strand) * h_rad;
+    const thickness = 0.8; 
+    const u = Math.random();
+    const v = Math.random();
+    const t_theta = u * 2.0 * Math.PI;
+    const t_phi = Math.acos(2.0 * v - 1.0);
+    const t_r = Math.cbrt(Math.random()) * thickness; 
+    
+    const hel_x = cx + Math.sin(t_phi) * Math.cos(t_theta) * t_r;
+    const hel_y = -h_y + Math.cos(t_phi) * t_r; 
+    const hel_z = cz + Math.sin(t_phi) * Math.sin(t_theta) * t_r;
+    
+    // Assign to Prizes (3), Qualification (4), Schedule (5)
+    shapes[3][idx] = hel_x; shapes[3][idx + 1] = hel_y; shapes[3][idx + 2] = hel_z;
+    shapes[4][idx] = hel_x; shapes[4][idx + 1] = hel_y; shapes[4][idx + 2] = hel_z;
+    shapes[5][idx] = hel_x; shapes[5][idx + 1] = hel_y; shapes[5][idx + 2] = hel_z;
 
+    // SHAPE D: Data Grid / Landscape (Speakers, Sponsors, Venue)
+    const gridDim = Math.ceil(Math.sqrt(PARTICLE_COUNT));
+    const gx = (i % gridDim);
+    const gy = Math.floor(i / gridDim);
+    const grid_x = (gx / gridDim - 0.5) * 20 + (Math.random() - 0.5) * 0.2;
+    const grid_y = (gy / gridDim - 0.5) * 20 + (Math.random() - 0.5) * 0.2;
+    const grid_z = Math.sin(grid_x * 0.5) * Math.cos(grid_y * 0.5) * 2; // Wavy landscape
+    
+    // Assign to Speakers (6), Sponsors (7), Venue (8)
+    shapes[6][idx] = grid_x; shapes[6][idx + 1] = grid_z - 3; shapes[6][idx + 2] = grid_y; // Rotated to lie flat
+    shapes[7][idx] = grid_x; shapes[7][idx + 1] = grid_z - 3; shapes[7][idx + 2] = grid_y;
+    shapes[8][idx] = grid_x; shapes[8][idx + 1] = grid_z - 3; shapes[8][idx + 2] = grid_y;
+
+    // Base Color assignment
     const colorT = (y + 1) / 2;
     tempColor.lerpColors(colorBottom, colorTop, colorT);
-    colors[i * 3] = tempColor.r;
-    colors[i * 3 + 1] = tempColor.g;
-    colors[i * 3 + 2] = tempColor.b;
+    colors[idx] = tempColor.r;
+    colors[idx + 1] = tempColor.g;
+    colors[idx + 2] = tempColor.b;
   }
 
-  return { spherePositions, helixPositions, colors };
+  return { shapes, colors };
 }
 
 export function ParticleScene({ scrollYProgress }) {
@@ -63,94 +114,191 @@ export function ParticleScene({ scrollYProgress }) {
   const prefersReducedMotion = useReducedMotion();
   const { viewport } = useThree();
   
-  const { spherePositions, helixPositions, colors } = useMemo(() => createParticleData(), []);
-  const displacements = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []); // Stores current x, y, z displacement for each particle
+  const { shapes, colors } = useMemo(() => createParticleData(), []);
+  const displacements = useMemo(() => new Float32Array(PARTICLE_COUNT * 3), []); 
+  const sectionOffsets = useRef([]);
+
+  React.useEffect(() => {
+    const updateOffsets = () => {
+      const sections = document.querySelectorAll('section');
+      const offsets = [];
+      sections.forEach(sec => {
+        const rect = sec.getBoundingClientRect();
+        offsets.push(rect.top + window.scrollY);
+      });
+      sectionOffsets.current = offsets;
+    };
+    
+    updateOffsets();
+    const interval = setInterval(updateOffsets, 1000);
+    window.addEventListener('resize', updateOffsets);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', updateOffsets);
+    };
+  }, []);
 
   useFrame((state, delta) => {
     if (!meshRef.current || !groupRef.current) return;
 
     const scroll = scrollYProgress.get(); 
-    // Smooth transition from sphere to helix across the first half, then slowly expand/twist
-    const morphTarget = prefersReducedMotion ? 0 : Math.min(1, scroll * 2.5);
-    const pulseIntensity = prefersReducedMotion ? 0 : scroll;
     
-    if (!prefersReducedMotion) {
-      groupRef.current.rotation.y += delta * (0.05 + scroll * 0.1);
+    // Determine Shape Interpolation
+    const offsets = sectionOffsets.current;
+    let currentShapeIdx = 0;
+    let nextShapeIdx = 0;
+    let lerpFactor = 0;
+    
+    // We expect exactly 10 sections (Hero -> Contact)
+    if (offsets.length === SHAPE_COUNT) {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      
+      // Trigger offset: Middle of the screen
+      const triggerOffset = scrollY + (viewportHeight / 2);
+      
+      for (let i = 0; i < offsets.length; i++) {
+        if (triggerOffset >= offsets[i]) {
+          currentShapeIdx = i;
+        }
+      }
+      
+      nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
+      
+      if (currentShapeIdx !== nextShapeIdx) {
+        const start = offsets[currentShapeIdx];
+        const end = offsets[nextShapeIdx];
+        const sectionHeight = end - start;
+        
+        let progress = (triggerOffset - start) / (sectionHeight || 1);
+        progress = Math.max(0, Math.min(1, progress));
+        
+        // Hold shape for the first 40% of the section, then perform a slow fluid transition over the remaining 60%
+        if (progress > 0.4) {
+          const p = (progress - 0.4) / 0.6;
+          lerpFactor = p * p * (3 - 2 * p);
+        } else {
+          lerpFactor = 0.0;
+        }
+      }
+    } else {
+      // Fallback mapping if DOM isn't ready
+      const sectionFloat = Math.max(0, Math.min(SHAPE_COUNT - 1.001, scroll * SHAPE_COUNT));
+      currentShapeIdx = Math.floor(sectionFloat);
+      nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
+      
+      const rawLerp = sectionFloat - currentShapeIdx;
+      if (rawLerp > 0.4) {
+        const p = (rawLerp - 0.4) / 0.6;
+        lerpFactor = p * p * (3 - 2 * p);
+      } else {
+        lerpFactor = 0.0;
+      }
     }
     
-    const time = state.clock.getElapsedTime();
-    
-    // Map pointer to 3D space roughly
-    const pointer3D = new THREE.Vector3(
-      (state.pointer.x * viewport.width) / 2,
-      (state.pointer.y * viewport.height) / 2,
-      0
-    );
-
-    const baseZ = 6;
-    const helixZ = 5;
-    state.camera.position.z = THREE.MathUtils.lerp(baseZ, helixZ, morphTarget);
+    // Group Rotation & Sync for Schedule (Idx 5)
+    let scrollRotationOffset = 0;
+    if (offsets.length > 5) {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      const triggerOffset = scrollY + (viewportHeight / 2);
+      
+      const start = offsets[5];
+      const end = offsets[6] || (start + viewportHeight * 2);
+      const sectionHeight = end - start;
+      let localProgress = (triggerOffset - start) / (sectionHeight || 1);
+      
+      localProgress = Math.max(0, Math.min(1, localProgress));
+      scrollRotationOffset = localProgress * Math.PI * 4;
+    }
 
     if (!prefersReducedMotion) {
       const mouseX = (state.pointer.x * Math.PI) / 10;
       const mouseY = (state.pointer.y * Math.PI) / 10;
-      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, mouseY, 0.05);
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, groupRef.current.rotation.y + mouseX * 0.01, 0.05);
+      
+      const targetRotationY = (state.clock.elapsedTime * 0.05) + scrollRotationOffset + mouseX;
+      
+      groupRef.current.rotation.y = THREE.MathUtils.damp(
+        groupRef.current.rotation.y,
+        targetRotationY,
+        4,
+        delta
+      );
+      groupRef.current.rotation.x = THREE.MathUtils.damp(
+        groupRef.current.rotation.x,
+        mouseY + Math.sin(state.clock.elapsedTime * 0.5) * 0.05,
+        4,
+        delta
+      );
+    } else {
+      groupRef.current.rotation.y = (state.clock.elapsedTime * 0.05) + scrollRotationOffset;
     }
 
-    // Sine wave breathing / resonance pulse grows with scroll
-    const breathingAmplitude = prefersReducedMotion ? 0 : 0.05 + morphTarget * 0.1 + pulseIntensity * 0.2;
+    const time = state.clock.getElapsedTime();
+
+    // Accurate Pointer Unprojection to Z=0 Plane
+    vec3.set(state.pointer.x, state.pointer.y, 0.5);
+    vec3.unproject(state.camera);
+    vec3.sub(state.camera.position).normalize();
+    const distanceToZ0 = (0 - state.camera.position.z) / vec3.z;
+    const pointer3DWorld = new THREE.Vector3().copy(state.camera.position).add(vec3.multiplyScalar(distanceToZ0));
+    
+    // Convert world pointer to group's local space for accurate repel against rotated particles
+    const pointerLocal = groupRef.current.worldToLocal(pointer3DWorld.clone());
+
+    const repelRadius = prefersReducedMotion ? 1.0 : 1.5;
+    const repelStrength = prefersReducedMotion ? 0.2 : 0.6;
+    const breathingAmplitude = prefersReducedMotion ? 0 : 0.08 + scroll * 0.05;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const idx = i * 3;
       
-      let targetX = THREE.MathUtils.lerp(spherePositions[idx], helixPositions[idx], morphTarget);
-      let targetY = THREE.MathUtils.lerp(spherePositions[idx + 1], helixPositions[idx + 1], morphTarget);
-      let targetZ = THREE.MathUtils.lerp(spherePositions[idx + 2], helixPositions[idx + 2], morphTarget);
+      // Interpolate Target Position
+      let targetX = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx], shapes[nextShapeIdx][idx], lerpFactor);
+      let targetY = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 1], shapes[nextShapeIdx][idx + 1], lerpFactor);
+      let targetZ = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 2], shapes[nextShapeIdx][idx + 2], lerpFactor);
       
       if (!prefersReducedMotion) {
-        // Continuous idle resonance wave
+        // Continuous additive idle breathing wave
         const distFromCenter = Math.sqrt(targetX * targetX + targetY * targetY + targetZ * targetZ);
-        const wave = Math.sin(time * 3 - distFromCenter * 2 + scroll * 10) * breathingAmplitude;
+        const wave = Math.sin(time * 3 - distFromCenter * 2 + scroll * 15) * breathingAmplitude;
         
-        const dirX = targetX / (distFromCenter || 1);
-        const dirY = targetY / (distFromCenter || 1);
-        const dirZ = targetZ / (distFromCenter || 1);
-        
-        targetX += dirX * wave;
-        targetY += dirY * wave;
-        targetZ += dirZ * wave;
+        targetX += (targetX / (distFromCenter || 1)) * wave;
+        targetY += (targetY / (distFromCenter || 1)) * wave;
+        targetZ += (targetZ / (distFromCenter || 1)) * wave;
 
-        // Pointer Repel
-        const dx = targetX - pointer3D.x;
-        const dy = targetY - pointer3D.y;
-        const distToP = Math.sqrt(dx * dx + dy * dy);
-        const repelRadius = 2.0;
+        // Pointer Repel Force (Additive)
+        const dx = targetX - pointerLocal.x;
+        const dy = targetY - pointerLocal.y;
+        const dz = targetZ - pointerLocal.z;
+        const distToP = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        let forceX = 0;
-        let forceY = 0;
+        let forceX = 0, forceY = 0, forceZ = 0;
 
         if (distToP < repelRadius) {
           const force = (repelRadius - distToP) / repelRadius; // 0 to 1
-          forceX = (dx / distToP) * force * 1.5;
-          forceY = (dy / distToP) * force * 1.5;
+          forceX = (dx / distToP) * force * repelStrength;
+          forceY = (dy / distToP) * force * repelStrength;
+          forceZ = (dz / distToP) * force * repelStrength;
         }
 
-        // Ease displacements
-        displacements[idx] = THREE.MathUtils.lerp(displacements[idx], forceX, 0.1);
-        displacements[idx + 1] = THREE.MathUtils.lerp(displacements[idx + 1], forceY, 0.1);
+        // Spring ease the displacement back to 0
+        displacements[idx] = THREE.MathUtils.damp(displacements[idx], forceX, 4, delta);
+        displacements[idx + 1] = THREE.MathUtils.damp(displacements[idx + 1], forceY, 4, delta);
+        displacements[idx + 2] = THREE.MathUtils.damp(displacements[idx + 2], forceZ, 4, delta);
 
         targetX += displacements[idx];
         targetY += displacements[idx + 1];
+        targetZ += displacements[idx + 2];
       }
 
       dummy.position.set(targetX, targetY, targetZ);
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
       
-      // Shift color to deeper indigo based on scroll
+      // Shift color to deeper indigo based on scroll progress
       tempColor.setRGB(colors[idx], colors[idx+1], colors[idx+2]);
-      tempColor.lerp(colorDeep, scroll * 0.7);
+      tempColor.lerp(colorDeep, scroll * 0.8);
       meshRef.current.setColorAt(i, tempColor);
     }
     
