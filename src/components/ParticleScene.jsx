@@ -119,7 +119,7 @@ function createParticleData2() {
   return { shapes, colors };
 }
 
-export function ParticleScene({ scrollYProgress }) {
+export function ParticleScene({ scrollYProgress, pathname }) {
   const meshRef = useRef();
   const groupRef = useRef();
   const prefersReducedMotion = useReducedMotion();
@@ -160,84 +160,92 @@ export function ParticleScene({ scrollYProgress }) {
     let nextShapeIdx = 0;
     let lerpFactor = 0;
 
-    // We expect exactly 10 sections (Hero -> Contact)
-    if (offsets.length === SHAPE_COUNT) {
-      const scrollY = window.scrollY;
-      const viewportHeight = window.innerHeight;
+    let scrollRotationOffset = 0;
 
-      // Trigger offset: Middle of the screen
-      const triggerOffset = scrollY + (viewportHeight / 2);
+    if (pathname && pathname !== '/') {
+      currentShapeIdx = 6;
+      nextShapeIdx = 6;
+      lerpFactor = 0;
+      scrollRotationOffset = state.clock.elapsedTime * 0.1;
+    } else {
+      // We expect exactly 10 sections (Hero -> Contact)
+      if (offsets.length === SHAPE_COUNT) {
+        const scrollY = window.scrollY;
+        const viewportHeight = window.innerHeight;
 
-      for (let i = 0; i < offsets.length; i++) {
-        if (triggerOffset >= offsets[i]) {
-          currentShapeIdx = i;
+        // Trigger offset: Middle of the screen
+        const triggerOffset = scrollY + (viewportHeight / 2);
+
+        for (let i = 0; i < offsets.length; i++) {
+          if (triggerOffset >= offsets[i]) {
+            currentShapeIdx = i;
+          }
         }
-      }
 
-      nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
+        nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
 
-      if (currentShapeIdx !== nextShapeIdx) {
-        const start = offsets[currentShapeIdx];
-        const end = offsets[nextShapeIdx];
-        const sectionHeight = end - start;
+        if (currentShapeIdx !== nextShapeIdx) {
+          const start = offsets[currentShapeIdx];
+          const end = offsets[nextShapeIdx];
+          const sectionHeight = end - start;
 
-        let progress;
-        if (currentShapeIdx === 0) {
-          // The hero section only spans half the scroll distance before switching to shape 1.
-          // Multiply by 2 (or divide sectionHeight by 2) to complete the transition in time.
-          progress = scrollY / ((sectionHeight / 2) || 1);
-        } else {
-          progress = (triggerOffset - start) / (sectionHeight || 1);
+          let progress;
+          if (currentShapeIdx === 0) {
+            // The hero section only spans half the scroll distance before switching to shape 1.
+            // Multiply by 2 (or divide sectionHeight by 2) to complete the transition in time.
+            progress = scrollY / ((sectionHeight / 2) || 1);
+          } else {
+            progress = (triggerOffset - start) / (sectionHeight || 1);
+          }
+          progress = Math.max(0, Math.min(1, progress));
+
+          // For the hero section transition, hold less and transition slower over more scroll distance
+          let holdThreshold = currentShapeIdx === 0 ? 0.1 : 0.4;
+          if (progress > holdThreshold) {
+            const p = (progress - holdThreshold) / (1 - holdThreshold);
+            lerpFactor = p * p * (3 - 2 * p);
+          } else {
+            lerpFactor = 0.0;
+          }
         }
-        progress = Math.max(0, Math.min(1, progress));
+      } else {
+        // Fallback mapping if DOM isn't ready
+        const sectionFloat = Math.max(0, Math.min(SHAPE_COUNT - 1.001, scroll * SHAPE_COUNT));
+        currentShapeIdx = Math.floor(sectionFloat);
+        nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
 
-        // For the hero section transition, hold less and transition slower over more scroll distance
+        const rawLerp = sectionFloat - currentShapeIdx;
         let holdThreshold = currentShapeIdx === 0 ? 0.1 : 0.4;
-        if (progress > holdThreshold) {
-          const p = (progress - holdThreshold) / (1 - holdThreshold);
+
+        if (rawLerp > holdThreshold) {
+          const p = (rawLerp - holdThreshold) / (1 - holdThreshold);
           lerpFactor = p * p * (3 - 2 * p);
         } else {
           lerpFactor = 0.0;
         }
       }
-    } else {
-      // Fallback mapping if DOM isn't ready
-      const sectionFloat = Math.max(0, Math.min(SHAPE_COUNT - 1.001, scroll * SHAPE_COUNT));
-      currentShapeIdx = Math.floor(sectionFloat);
-      nextShapeIdx = Math.min(SHAPE_COUNT - 1, currentShapeIdx + 1);
 
-      const rawLerp = sectionFloat - currentShapeIdx;
-      let holdThreshold = currentShapeIdx === 0 ? 0.1 : 0.4;
+      // Group Rotation & Sync for Schedule (Idx 5)
+      if (offsets.length > 5) {
+        const scrollY = window.scrollY;
+        const viewportHeight = window.innerHeight;
+        const triggerOffset = scrollY + (viewportHeight / 2);
 
-      if (rawLerp > holdThreshold) {
-        const p = (rawLerp - holdThreshold) / (1 - holdThreshold);
-        lerpFactor = p * p * (3 - 2 * p);
-      } else {
-        lerpFactor = 0.0;
+        const start = offsets[5];
+        const end = offsets[6] || (start + viewportHeight * 2);
+        const sectionHeight = end - start;
+        let localProgress = (triggerOffset - start) / (sectionHeight || 1);
+
+        localProgress = Math.max(0, Math.min(1, localProgress));
+        scrollRotationOffset = localProgress * Math.PI * 4;
       }
-    }
-
-    // Group Rotation & Sync for Schedule (Idx 5)
-    let scrollRotationOffset = 0;
-    if (offsets.length > 5) {
-      const scrollY = window.scrollY;
-      const viewportHeight = window.innerHeight;
-      const triggerOffset = scrollY + (viewportHeight / 2);
-
-      const start = offsets[5];
-      const end = offsets[6] || (start + viewportHeight * 2);
-      const sectionHeight = end - start;
-      let localProgress = (triggerOffset - start) / (sectionHeight || 1);
-
-      localProgress = Math.max(0, Math.min(1, localProgress));
-      scrollRotationOffset = localProgress * Math.PI * 4;
     }
 
     if (!prefersReducedMotion) {
       const mouseX = (state.pointer.x * Math.PI) / 10;
       const mouseY = (state.pointer.y * Math.PI) / 10;
 
-      const targetRotationY = (state.clock.elapsedTime * 0.05) + scrollRotationOffset + mouseX;
+      const targetRotationY = scrollRotationOffset + mouseX;
 
       groupRef.current.rotation.y = THREE.MathUtils.damp(
         groupRef.current.rotation.y,
@@ -252,7 +260,7 @@ export function ParticleScene({ scrollYProgress }) {
         delta
       );
     } else {
-      groupRef.current.rotation.y = (state.clock.elapsedTime * 0.05) + scrollRotationOffset;
+      groupRef.current.rotation.y = scrollRotationOffset;
     }
 
     const time = state.clock.getElapsedTime();
