@@ -1,22 +1,27 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Terminal, Users, Send } from 'lucide-react';
+import { Terminal, Users, Code, Award } from 'lucide-react';
 
 const steps = [
   {
     icon: Terminal,
-    title: "1. Register on EventHub",
-    desc: "Create your profile and link your GitHub to enter the portal."
+    title: "Registration",
+    desc: "Open now. Register your team."
   },
   {
     icon: Users,
-    title: "2. Form a Squad",
-    desc: "Join forces with up to 3 other builders. Solo hackers are welcome."
+    title: "Team Formation",
+    desc: "1 to 4 members per team before the event."
   },
   {
-    icon: Send,
-    title: "3. Submit Proposal",
-    desc: "Outline your approach before hacking begins to secure your spot."
+    icon: Code,
+    title: "The Hackathon",
+    desc: "48 hours of non-stop innovation (Sept 7-9)."
+  },
+  {
+    icon: Award,
+    title: "Presentation & Results",
+    desc: "Demos, evaluation, and celebrating innovation on the final day."
   }
 ];
 
@@ -30,7 +35,7 @@ export default function Qualification() {
         transition={{ duration: 0.8 }}
         className="text-center mb-24"
       >
-        <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 font-display">How to Enter</h2>
+        <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 font-display">Journey of Resonance 2026</h2>
       </motion.div>
 
       <div className="relative">

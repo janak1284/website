@@ -16,7 +16,6 @@ export function RootLayout() {
   });
 
   const [mountCanvas, setMountCanvas] = useState(false);
-  const [showNav, setShowNav] = useState(false);
 
   useEffect(() => {
     // Defer 3D canvas mount until first paint completes
@@ -24,23 +23,14 @@ export function RootLayout() {
     return () => clearTimeout(timer);
   }, []);
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    // Show sticky nav CTA after scrolling past a certain point
-    if (latest > 500) {
-      setShowNav(true);
-    } else {
-      setShowNav(false);
-    }
-  });
-
   return (
     <div ref={containerRef} className="relative w-full min-h-screen">
       <ScrollToTop />
       
-      {/* Navbar / Sticky Nav CTA */}
+      {/* Sticky Glassmorphic Navbar */}
       <motion.div 
         initial={{ y: -100 }}
-        animate={{ y: showNav || location.pathname !== '/' ? 0 : -100 }}
+        animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
         className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-4 md:p-6 pointer-events-none"
       >
@@ -48,12 +38,11 @@ export function RootLayout() {
            <Link to="/" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Home</Link>
            <Link to="/guidelines" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Guidelines</Link>
            <Link to="/tracks" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Tracks</Link>
-           <Link to="/schedule" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Live Schedule</Link>
-           <Link to="/dashboard" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Dashboard</Link>
+           <Link to="/schedule" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Schedule</Link>
         </div>
         <a href="#" className="pointer-events-auto hidden md:block">
           <Button variant="primary" className="shadow-2xl">
-            Register on EventHub
+            Team Portal
           </Button>
         </a>
       </motion.div>

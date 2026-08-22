@@ -25,16 +25,16 @@ export default function Venue() {
             <div className="flex items-start gap-4">
               <MapPin className="w-6 h-6 text-[#C026D3] flex-shrink-0 mt-1" />
               <div>
-                <h4 className="text-xl font-bold text-white mb-1 font-display">Innovation Center, Block B</h4>
-                <p className="text-white/50">128 Tech Boulevard<br />San Francisco, CA 94105</p>
+                <h4 className="text-xl font-bold text-white mb-1 font-display">School of Computer Science and Engineering (SCOPE)</h4>
+                <p className="text-white/50">VIT Chennai</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
               <CalendarDays className="w-6 h-6 text-[#8B5CF6] flex-shrink-0 mt-1" />
               <div>
-                <h4 className="text-xl font-bold text-white mb-1 font-display">Doors Open</h4>
-                <p className="text-white/50">Friday, Oct 15 @ 8:00 AM PST</p>
+                <h4 className="text-xl font-bold text-white mb-1 font-display">Check-in begins</h4>
+                <p className="text-white/50">Sept 7 @ 9:00 AM IST</p>
               </div>
             </div>
           </div>

@@ -2,20 +2,28 @@ import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 const schedule = [
-  { day: "Day 1 - Friday, Oct 15", events: [
-    { time: "09:00 AM", title: "Check-in & Breakfast", desc: "Arrive at the venue and collect your swag." },
-    { time: "11:00 AM", title: "Opening Ceremony", desc: "Keynotes and track announcements." },
-    { time: "12:00 PM", title: "Hacking Begins", desc: "Teams finalize ideas and start building." },
+  { day: "Day 1", events: [
+    { time: "09:00 AM", title: "Check-in & Problem Release", desc: "Get settled, meet your team and discover the challenge" },
+    { time: "10:00 AM", title: "Inauguration", desc: "Official opening of Resonance 1.0" },
+    { time: "02:00 PM", title: "Hackathon Begins", desc: "The building starts" },
+    { time: "05:00 PM", title: "Round 1 Idea Evaluation", desc: "Pitch your concept and show the potential behind your idea" },
+    { time: "07:00 PM", title: "Round 1 Results", desc: "The overnight grind begins" }
   ]},
-  { day: "Day 2 - Saturday, Oct 16", events: [
-    { time: "10:00 AM", title: "Mentorship Round 1", desc: "Experts visit tables to review progress." },
-    { time: "03:00 PM", title: "Mini-Event: Lightning Talks", desc: "Short tech talks by our sponsors." },
-    { time: "08:00 PM", title: "Checkpoint 2", desc: "Submit progress report." },
+  { day: "Day 2", events: [
+    { time: "07:00 AM", title: "Bonus Round", desc: "An extra challenge. Extra opportunity" },
+    { time: "09:00 AM", title: "Round 2", desc: "Keep building. Keep improving" },
+    { time: "11:00 AM", title: "Mentor Session", desc: "Get guidance from experienced minds" },
+    { time: "04:00 PM", title: "Round 3 Evaluation", desc: "Time to show your progress" },
+    { time: "05:00 PM", title: "Round 3 Results", desc: "The competition gets tighter" },
+    { time: "08:00 PM", title: "Hackathon Continues", desc: "Keep building through the night" }
   ]},
-  { day: "Day 3 - Sunday, Oct 17", events: [
-    { time: "08:00 AM", title: "Code Freeze", desc: "Stop hacking, finalize presentations." },
-    { time: "10:00 AM", title: "Judging Round 1", desc: "Science fair style judging." },
-    { time: "02:00 PM", title: "Closing Ceremony", desc: "Winners announced, prizes distributed." },
+  { day: "Day 3", events: [
+    { time: "08:00 AM", title: "Final Bonus Round", desc: "One last challenge" },
+    { time: "10:00 AM", title: "Mentor Session", desc: "Final feedback" },
+    { time: "11:20 AM", title: "Progression Statement", desc: "Final refinements" },
+    { time: "02:30 PM", title: "Building Ends", desc: "No more brainstorming. Time to deliver" },
+    { time: "02:40 PM", title: "Round 4 Final Evaluation", desc: "Present. Demonstrate. Defend your solution" },
+    { time: "By 05:00 PM", title: "Hackathon Closure", desc: "And that's a wrap!" }
   ]}
 ];
 

@@ -4,6 +4,7 @@ import { Sparkles } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
 import { ResonanceWordmark } from './ResonanceWordmark';
+import { Link } from 'react-router-dom';
 
 const containerVariants = {
   hidden: {},
@@ -43,7 +44,7 @@ export function Hero({ scrollYProgress }) {
           className="flex flex-col items-center"
         >
           <motion.div variants={fadeUpVariants} className="mb-6">
-            <Badge icon={Sparkles}>Innovate. Collaborate. Impact.</Badge>
+            <Badge icon={Sparkles}>Code. Create. Innovate.</Badge>
           </motion.div>
 
           <motion.div variants={fadeUpVariants} className="w-full mb-8">
@@ -64,7 +65,7 @@ export function Hero({ scrollYProgress }) {
           >
             <span className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8B5CF6]"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-              18 - 19 AUGUST 2026
+              7-9 SEP 2026
             </span>
             <span className="hidden md:inline text-white/30">•</span>
             <span className="flex items-center gap-2">
@@ -77,8 +78,8 @@ export function Hero({ scrollYProgress }) {
             variants={fadeUpVariants}
             className="flex flex-col sm:flex-row items-center gap-4"
           >
-            <Button variant="primary">Register Now</Button>
-            <Button variant="secondary">View Schedule</Button>
+            <Link to="/login"><Button variant="primary">Register Now</Button></Link>
+            <Link to="/live"><Button variant="secondary">View Schedule</Button></Link>
           </motion.div>
         </motion.div>
       </div>

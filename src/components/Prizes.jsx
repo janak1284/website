@@ -29,60 +29,51 @@ export default function Prizes() {
         style={{ opacity: headerOpacity, y: headerY }}
         className="text-center mb-24"
       >
-        <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 font-['Orbitron'] tracking-wide uppercase">Prize Pool</h2>
-        <p className="text-white/60 text-lg max-w-2xl mx-auto">Over ₹20,000 in cash and goodies to be won by the most innovative teams.</p>
+        <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 font-['Orbitron'] tracking-wide uppercase">₹60,000+ Prize Pool</h2>
+        <p className="text-white/60 text-lg max-w-2xl mx-auto">Massive rewards and goodies to be won by the most innovative teams.</p>
       </motion.div>
 
-      <div className="flex flex-col md:flex-row items-end justify-center gap-6 mt-12 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-5xl mx-auto">
         
-        {/* 2nd Place */}
+        {/* Prize Pool */}
         <motion.div 
           style={{ opacity: secondOpacity, y: secondY }}
-          className="w-full md:w-1/3 order-2 md:order-1 relative z-10"
+          className="relative z-10"
         >
-          <GlassCard className="p-8 text-center flex flex-col items-center h-full border-b-4 border-b-[#C0C0C0] bg-[#130d26]/60">
-            <Medal className="w-12 h-12 mb-4 text-[#C0C0C0]" />
-            <h3 className="text-lg font-medium text-white/80 mb-2">2nd Place</h3>
-            <div className="text-4xl md:text-5xl font-bold text-white mb-8 font-['Orbitron']">₹6,000</div>
-            <ul className="space-y-3 w-full text-left text-sm">
-              <li className="text-white/70 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#C0C0C0]" /> Cash Prize</li>
-              <li className="text-white/70 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#C0C0C0]" /> Certificates</li>
-            </ul>
+          <GlassCard className="p-8 text-center flex flex-col items-center h-full border-b-4 border-b-[#FFD700] bg-gradient-to-b from-[#8B5CF6]/10 to-[#130d26]/80 shadow-[0_0_30px_rgba(139,92,246,0.15)]">
+            <Trophy className="w-12 h-12 mb-6 text-[#FFD700]" />
+            <h3 className="text-xl font-semibold text-white/90 mb-4 uppercase tracking-widest">Rewards</h3>
+            <div className="text-3xl font-bold text-white mb-4 font-['Orbitron'] text-transparent bg-clip-text bg-gradient-to-r from-white to-[#A78BFA]">₹60K+ Prize Pool</div>
+            <p className="text-white/70 leading-relaxed flex-grow">Massive cash rewards distributed among the top performing and most innovative teams.</p>
           </GlassCard>
         </motion.div>
 
-        {/* 1st Place */}
+        {/* Internships */}
         <motion.div 
           style={{ opacity: firstOpacity, y: firstY }}
-          className="w-full md:w-5/12 order-1 md:order-2 relative z-20 md:-mb-12"
+          className="relative z-20"
         >
-          <GlassCard className="p-10 text-center flex flex-col items-center h-full border-[#FFD700]/50 bg-gradient-to-b from-[#8B5CF6]/20 to-[#130d26]/80 shadow-[0_0_50px_rgba(139,92,246,0.3)] border-b-4 border-b-[#FFD700]">
-            <Trophy className="w-16 h-16 mb-4 text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]" />
-            <h3 className="text-xl font-semibold text-white/90 mb-2 uppercase tracking-widest">1st Place</h3>
-            <div className="text-5xl md:text-6xl font-bold text-white mb-8 font-['Orbitron'] text-transparent bg-clip-text bg-gradient-to-r from-white to-[#A78BFA]">₹10,000</div>
-            <ul className="space-y-4 w-full text-left">
-              <li className="text-white/80 font-medium flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FFD700]" />Cash Prize</li>
-              <li className="text-white/80 font-medium flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FFD700]" />Winner Certificates</li>
-              <li className="text-white/80 font-medium flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-[#FFD700]" />Exclusive Goodies</li>
-            </ul>
+          <GlassCard className="p-8 text-center flex flex-col items-center h-full border-b-4 border-b-[#8B5CF6] bg-gradient-to-b from-[#C026D3]/10 to-[#130d26]/80 shadow-[0_0_30px_rgba(192,38,211,0.15)]">
+            <Award className="w-12 h-12 mb-6 text-[#8B5CF6]" />
+            <h3 className="text-xl font-semibold text-white/90 mb-4 uppercase tracking-widest">Career</h3>
+            <div className="text-3xl font-bold text-white mb-4 font-['Orbitron'] text-transparent bg-clip-text bg-gradient-to-r from-white to-[#C026D3]">Exclusive Internships</div>
+            <p className="text-white/70 leading-relaxed flex-grow">Standout participants get a shot at exclusive internship opportunities with our partner companies.</p>
           </GlassCard>
         </motion.div>
 
-        {/* 3rd Place */}
+        {/* Certificates */}
         <motion.div 
           style={{ opacity: thirdOpacity, y: thirdY }}
-          className="w-full md:w-1/3 order-3 md:order-3 relative z-0 md:mt-12"
+          className="relative z-10"
         >
-          <GlassCard className="p-6 text-center flex flex-col items-center h-full border-b-4 border-b-[#CD7F32] bg-[#130d26]/40 opacity-90">
-            <Award className="w-10 h-10 mb-4 text-[#CD7F32]" />
-            <h3 className="text-base font-medium text-white/70 mb-2">3rd Place</h3>
-            <div className="text-3xl md:text-4xl font-bold text-white mb-6 font-['Orbitron']">₹4,000</div>
-            <ul className="space-y-2 w-full text-left text-sm">
-              <li className="text-white/60 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#CD7F32]" /> Cash Prize</li>
-              <li className="text-white/60 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-[#CD7F32]" /> Certificates</li>
-            </ul>
+          <GlassCard className="p-8 text-center flex flex-col items-center h-full border-b-4 border-b-[#4C1D95] bg-gradient-to-b from-[#8B5CF6]/10 to-[#130d26]/80 shadow-[0_0_30px_rgba(139,92,246,0.15)]">
+            <Medal className="w-12 h-12 mb-6 text-[#4C1D95]" />
+            <h3 className="text-xl font-semibold text-white/90 mb-4 uppercase tracking-widest">Recognition</h3>
+            <div className="text-3xl font-bold text-white mb-4 font-['Orbitron'] text-transparent bg-clip-text bg-gradient-to-r from-white to-[#A78BFA]">Certificates & Goodies</div>
+            <p className="text-white/70 leading-relaxed flex-grow">Every participant receives a certificate of participation and exclusive event goodies.</p>
           </GlassCard>
         </motion.div>
+
       </div>
 
       <motion.div
@@ -90,16 +81,16 @@ export default function Prizes() {
         className="mt-32 max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center"
       >
         <div className="p-6 rounded-2xl bg-[#130d26]/40 border border-white/5">
-          <div className="text-4xl font-bold text-[#8B5CF6] font-['Orbitron'] mb-2">300+</div>
-          <div className="text-sm text-white/60 uppercase tracking-widest">Expected Students</div>
-        </div>
-        <div className="p-6 rounded-2xl bg-[#130d26]/40 border border-white/5">
-          <div className="text-4xl font-bold text-[#C026D3] font-['Orbitron'] mb-2">2-5</div>
+          <div className="text-4xl font-bold text-[#8B5CF6] font-['Orbitron'] mb-2">1-4</div>
           <div className="text-sm text-white/60 uppercase tracking-widest">Members / Team</div>
         </div>
         <div className="p-6 rounded-2xl bg-[#130d26]/40 border border-white/5">
-          <div className="text-4xl font-bold text-[#4C1D95] font-['Orbitron'] mb-2">48</div>
+          <div className="text-4xl font-bold text-[#C026D3] font-['Orbitron'] mb-2">48</div>
           <div className="text-sm text-white/60 uppercase tracking-widest">Hours Non-stop</div>
+        </div>
+        <div className="p-6 rounded-2xl bg-[#130d26]/40 border border-white/5">
+          <div className="text-4xl font-bold text-[#4C1D95] font-['Orbitron'] mb-2">60K+</div>
+          <div className="text-sm text-white/60 uppercase tracking-widest">Prize Pool</div>
         </div>
         <div className="p-6 rounded-2xl bg-[#130d26]/40 border border-white/5">
           <div className="text-3xl font-bold text-white font-['Orbitron'] mb-2 flex items-center justify-center h-10">VIT</div>

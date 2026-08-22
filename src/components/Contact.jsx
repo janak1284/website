@@ -13,7 +13,7 @@ export default function Contact() {
         transition={{ duration: 0.8 }}
       >
         <h2 className="text-3xl md:text-5xl font-semibold text-white mb-6">Ready to Resonate?</h2>
-        <p className="text-white/60 text-lg mb-10">Registration closes on October 1st. Don't miss your chance to build the future.</p>
+        <p className="text-white/60 text-lg mb-10">Registration closes on September 1st. Don't miss your chance to build the future.</p>
         
         <div className="flex justify-center mb-16">
           <a href="#" className="inline-block">
@@ -29,17 +29,25 @@ export default function Contact() {
           <div className="space-y-6">
             <div>
               <h4 className="text-lg font-medium text-white mb-2">Who can participate?</h4>
-              <p className="text-white/60">Anyone! Whether you are a student, professional, designer, or developer, Resonance is open to all skill levels.</p>
+              <p className="text-white/60">Open to all UG & PG students from colleges across India.</p>
             </div>
             <div className="w-full h-px bg-white/5" />
             <div>
-              <h4 className="text-lg font-medium text-white mb-2">How much does it cost?</h4>
-              <p className="text-white/60">Absolutely nothing. Participation, food, and swag are entirely free.</p>
+              <h4 className="text-lg font-medium text-white mb-2">Team Size?</h4>
+              <p className="text-white/60">1 to 4 members per team.</p>
             </div>
             <div className="w-full h-px bg-white/5" />
             <div>
               <h4 className="text-lg font-medium text-white mb-2">Still have questions?</h4>
-              <p className="text-white/60">Reach out to us at <a href="mailto:hello@resonance.tech" className="text-[#8B5CF6] hover:underline">hello@resonance.tech</a> or join our Discord server.</p>
+              <p className="text-white/60">
+                Reach out to our Coordinators:<br/><br/>
+                <strong className="text-white">Student Coordinators:</strong><br/>
+                Nerolena: <a href="tel:8122226901" className="text-[#8B5CF6] hover:underline">8122226901</a><br/>
+                Shriram: <a href="tel:9884464562" className="text-[#8B5CF6] hover:underline">9884464562</a><br/><br/>
+                <strong className="text-white">Faculty Coordinators:</strong><br/>
+                Dr. Yogesh C.<br/>
+                Dr. Vatchala S.
+              </p>
             </div>
           </div>
         </GlassCard>

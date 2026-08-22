@@ -37,8 +37,8 @@ export function Home() {
 
         <Qualification />
         <Schedule />
-        <Speakers />
-        <Sponsors />
+        {/* <Speakers /> */}
+        {/* <Sponsors /> */}
         <Venue />
         <Contact />
       </Suspense>

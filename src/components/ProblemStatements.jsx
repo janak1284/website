@@ -1,54 +1,24 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Cpu, Brain, Database, Shield, Layers, Terminal } from 'lucide-react';
+import { Code, Cpu } from 'lucide-react';
+import { Button } from './ui/Button';
+import { Link } from 'react-router-dom';
 
 const tracks = [
   {
-    icon: Terminal,
-    title: "Computer Science Engineering",
-    brief: "Core developers, problem solvers, and system architects.",
-    tag: "Core",
-    color: "#8B5CF6",
-    size: "col-span-1 md:col-span-2"
-  },
-  {
-    icon: Brain,
-    title: "AI & Machine Learning",
-    brief: "Building intelligent systems and pushing the boundaries of AI.",
-    tag: "Intelligence",
-    color: "#C026D3",
-    size: "col-span-1"
-  },
-  {
-    icon: Database,
-    title: "Data Science",
-    brief: "Turning data into insights and driving data-powered solutions.",
-    tag: "Analytics",
-    color: "#4C1D95",
-    size: "col-span-1"
-  },
-  {
-    icon: Shield,
-    title: "Cyber Security",
-    brief: "Securing systems, networks, and the digital future.",
-    tag: "Security",
-    color: "#8B5CF6",
-    size: "col-span-1 md:col-span-2"
-  },
-  {
-    icon: Layers,
-    title: "Software Engineering",
-    brief: "Designing, developing and delivering scalable software solutions.",
-    tag: "Systems",
-    color: "#C026D3",
-    size: "col-span-1 md:col-span-2"
-  },
-  {
     icon: Cpu,
-    title: "IoT & Embedded Systems",
-    brief: "Connecting devices and building smart, real-time applications.",
-    tag: "Hardware",
-    color: "#4C1D95",
+    title: "Hardware/IoT BUILD",
+    brief: "Design physical, sensor-driven devices and embedded systems that interact directly with the environment.",
+    tag: "Track 01",
+    color: "#C026D3",
+    size: "col-span-1"
+  },
+  {
+    icon: Code,
+    title: "Software & AI CODE",
+    brief: "Develop data-driven apps, predictive models, and platforms to drive systemic environmental change.",
+    tag: "Track 02",
+    color: "#8B5CF6",
     size: "col-span-1"
   }
 ];
@@ -92,21 +62,30 @@ export default function ProblemStatements() {
   const headerY = useTransform(scrollYProgress, [0, 0.2], [30, 0]);
 
   return (
-    <section ref={containerRef} className="relative z-10 py-32 px-6 max-w-7xl mx-auto">
+    <section ref={containerRef} className="relative z-10 py-32 px-6 max-w-5xl mx-auto">
       <motion.div
         style={{ opacity: headerOpacity, y: headerY }}
         className="mb-16 text-center"
       >
         <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 font-['Orbitron'] tracking-wide uppercase">
-          Hackathon <span className="text-[#8B5CF6]">Domains</span>
+          Hackathon <span className="text-[#8B5CF6]">Tracks</span>
         </h2>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 auto-rows-[minmax(200px,auto)] gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 auto-rows-[minmax(200px,auto)] gap-6">
         {tracks.map((track, i) => (
           <TrackCard key={i} track={track} index={i} scrollYProgress={scrollYProgress} />
         ))}
       </div>
+
+      <motion.div 
+        style={{ opacity: headerOpacity, y: headerY }}
+        className="mt-16 flex justify-center"
+      >
+        <Link to="/tracks">
+          <Button variant="primary">View Full Track Details</Button>
+        </Link>
+      </motion.div>
     </section>
   );
 }

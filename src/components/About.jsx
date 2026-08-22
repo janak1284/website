@@ -26,10 +26,10 @@ export default function About() {
             ABOUT <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] to-[#C026D3]">RESONANCE</span>
           </h2>
           <p className="text-white/80 text-xl leading-relaxed font-light mb-6">
-            Resonance is a <strong className="text-white font-medium">48-hour national level hackathon</strong> that brings together the brightest engineering minds from across the country to build innovative solutions for real-world challenges.
+            <strong className="text-white font-medium">RESONANCE 1.0: The Ultimate Hackathon</strong> is a 48-hour national-level technical hackathon organized by TECHKNOTS and the School of Computer Science and Engineering, VIT Chennai.
           </p>
           <p className="text-white/60 text-lg leading-relaxed mb-6">
-            It is more than just a competition — it is a platform where creativity meets technology, ideas turn into impact, and future leaders are born.
+            Theme: <strong className="text-[#8B5CF6]">Planet 48: Tech for a resilient planet</strong>. The goal is to engineer a sustainable future by tackling meaningful challenges that matter to industries and society.
           </p>
           <p className="text-white/60 text-lg leading-relaxed">
             At Resonance, we believe in the power of collaboration, curiosity, and relentless problem-solving to create a better tomorrow.
@@ -41,16 +41,13 @@ export default function About() {
           className="lg:col-span-5 flex flex-col gap-6 lg:pl-12 py-4"
         >
           <div className="p-8 rounded-3xl bg-[#130d26]/40 border border-white/5 backdrop-blur-sm">
-            <h3 className="text-2xl font-bold text-[#8B5CF6] font-['Orbitron'] mb-4 tracking-wider uppercase">Our Vision</h3>
-            <p className="text-white/70 leading-relaxed">
-              To build a community of innovators who resonate with ideas, create meaningful solutions, and drive technological impact.
-            </p>
-          </div>
-          <div className="p-8 rounded-3xl bg-[#130d26]/40 border border-white/5 backdrop-blur-sm">
-            <h3 className="text-2xl font-bold text-[#C026D3] font-['Orbitron'] mb-4 tracking-wider uppercase">Our Mission</h3>
-            <p className="text-white/70 leading-relaxed">
-              To provide a high-energy, inclusive, and industry-connected platform that empowers students to innovate, collaborate, and transform ideas into real-world solutions.
-            </p>
+            <h3 className="text-2xl font-bold text-[#8B5CF6] font-['Orbitron'] mb-4 tracking-wider uppercase">Why Participate?</h3>
+            <ul className="text-white/70 leading-relaxed space-y-4">
+              <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#8B5CF6]" /> Solve Real-World Problems</li>
+              <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#8B5CF6]" /> Expert Mentorship</li>
+              <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#8B5CF6]" /> Win Exciting Prizes</li>
+              <li className="flex items-center gap-3"><span className="w-2 h-2 rounded-full bg-[#8B5CF6]" /> Earn E-Certificates</li>
+            </ul>
           </div>
         </motion.div>
 
