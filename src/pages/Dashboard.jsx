@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import toast from 'react-hot-toast';
 
 export function Dashboard() {
   const [team, setTeam] = useState(null);
@@ -90,9 +91,9 @@ export function Dashboard() {
       if (res.ok) fetchTeam();
       else {
         const data = await res.json();
-        alert(data.detail || "Error creating team");
+        toast.error(data.detail || "An unexpected error occurred");
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { toast.error("An unexpected error occurred"); }
   };
 
   const handleAddMember = async () => {
@@ -106,11 +107,12 @@ export function Dashboard() {
       if (res.ok) {
         setNewMemberEmail('');
         fetchTeam();
+        toast.success("Member added successfully!");
       } else {
         const data = await res.json();
-        alert(data.detail || "Error adding member");
+        toast.error(data.detail || "An unexpected error occurred");
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { toast.error("An unexpected error occurred"); }
   };
 
   const handleClaimPS = async (ps_id) => {
@@ -121,14 +123,14 @@ export function Dashboard() {
         body: JSON.stringify({ ps_id })
       });
       if (res.ok) {
-        alert("Claimed successfully!");
+        toast.success("Claimed successfully!");
         fetchTeam();
         fetchProblemStatements();
       } else {
         const data = await res.json();
-        alert(data.detail || "Error claiming problem statement");
+        toast.error(data.detail || "An unexpected error occurred");
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { toast.error("An unexpected error occurred"); }
   };
 
   const handleSubmitFinal = async () => {
@@ -139,12 +141,12 @@ export function Dashboard() {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ github_url: githubUrl, demo_link: demoLink })
       });
-      if (res.ok) alert("Final submission saved!");
+      if (res.ok) toast.success("Final submission saved!");
       else {
         const data = await res.json();
-        alert(data.detail || "Error saving submission");
+        toast.error(data.detail || "An unexpected error occurred");
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { toast.error("An unexpected error occurred"); }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center pt-24 text-white">Loading...</div>;
@@ -186,16 +188,17 @@ export function Dashboard() {
                     ))}
                   </ul>
                 </div>
-                {team.leader_id === user.id && (team.members?.length < 4) && (
+                {team.leader_id === user.id && (
                   <div className="mt-auto pt-4 border-t border-white/10 flex gap-2">
                     <input 
                       type="email" 
                       placeholder="Member Email" 
-                      className="w-full p-2 rounded bg-white/10 text-white text-sm focus:outline-none"
+                      className="w-full p-2 rounded bg-white/10 text-white text-sm focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                       value={newMemberEmail}
                       onChange={(e) => setNewMemberEmail(e.target.value)}
+                      disabled={team.members?.length >= 4}
                     />
-                    <Button variant="outline" size="sm" onClick={handleAddMember}>Add</Button>
+                    <Button variant="outline" size="sm" onClick={handleAddMember} disabled={team.members?.length >= 4}>Add</Button>
                   </div>
                 )}
               </GlassCard>
