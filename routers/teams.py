@@ -24,7 +24,7 @@ def generate_join_code():
 @router.post("/create")
 async def create_team(req: CreateTeamRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     if user.team_id is not None:
-        raise HTTPException(status_code=400, detail="User is already in a team")
+        raise HTTPException(status_code=400, detail="You are already part of a team.")
         
     join_code = generate_join_code()
     
@@ -65,24 +65,20 @@ async def add_member(req: AddMemberRequest, user: User = Depends(get_current_use
     team = result.scalars().first()
     
     if team.leader_id != user.id:
-         raise HTTPException(status_code=403, detail="Only the team leader can add members")
+         raise HTTPException(status_code=403, detail="Only the team leader can add members.")
          
     if len(team.members) >= 4:
-         raise HTTPException(status_code=400, detail="Team is full (max 4 members)")
+         raise HTTPException(status_code=400, detail="Team capacity reached (Max 4).")
          
     # Check if member exists
     member_result = await db.execute(select(User).where(User.email == req.email))
     member = member_result.scalars().first()
     
     if not member:
-         # Create a placeholder user that will be updated upon their first login
-         member = User(email=req.email, name=req.email.split('@')[0])
-         db.add(member)
-         await db.commit()
-         await db.refresh(member)
+         raise HTTPException(status_code=404, detail="User not found. They must log in to the portal first.")
          
     if member.team_id:
-         raise HTTPException(status_code=400, detail="Member is already in a team")
+         raise HTTPException(status_code=400, detail="This user is already part of a team.")
          
     member.team_id = team.id
     await db.commit()

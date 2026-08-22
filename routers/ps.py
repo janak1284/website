@@ -55,7 +55,7 @@ async def claim_problem_statement(req: ClaimPSRequest, user: User = Depends(get_
     if current_time < PS_START_TIME or current_time > PS_END_TIME:
         raise HTTPException(
             status_code=403, 
-            detail="Problem statement selection is strictly limited to 12:30 PM to 1:00 PM on Sept 7, 2026 (IST)."
+            detail="The selection window is currently closed."
         )
         
     if not user.team_id:
@@ -68,10 +68,10 @@ async def claim_problem_statement(req: ClaimPSRequest, user: User = Depends(get_
         team = team_result.scalars().first()
         
         if team.leader_id != user.id:
-             raise HTTPException(status_code=403, detail="Only team leader can claim a problem statement")
+             raise HTTPException(status_code=403, detail="Only the team leader can claim a problem statement.")
              
         if team.ps_id:
-             raise HTTPException(status_code=400, detail="Team has already claimed a problem statement")
+             raise HTTPException(status_code=400, detail="Your team has already claimed a problem statement.")
              
         # Lock target PS row
         try:
@@ -94,7 +94,7 @@ async def claim_problem_statement(req: ClaimPSRequest, user: User = Depends(get_
         current_claims = claims_result.scalar()
         
         if current_claims >= ps.max_quota:
-             raise HTTPException(status_code=409, detail="Quota full for this problem statement")
+             raise HTTPException(status_code=409, detail="Quota full for this problem statement.")
              
         # Assign
         team.ps_id = ps.id
