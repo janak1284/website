@@ -6,6 +6,8 @@ import { Guidelines } from './pages/Guidelines';
 import { Tracks } from './pages/Tracks';
 import { ScheduleLive } from './pages/ScheduleLive';
 import { Dashboard } from './pages/Dashboard';
+import { Login } from './pages/Login';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
   return (
@@ -16,7 +18,10 @@ function App() {
           <Route path="guidelines" element={<Guidelines />} />
           <Route path="tracks" element={<Tracks />} />
           <Route path="schedule" element={<ScheduleLive />} />
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="login" element={<Login />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="dashboard" element={<Dashboard />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
