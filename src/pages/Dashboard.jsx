@@ -18,52 +18,70 @@ export function Dashboard() {
   const [timeLeft, setTimeLeft] = useState('');
   const [isTimeUp, setIsTimeUp] = useState(false);
 
-  const token = localStorage.getItem('access_token');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  // Stable tokens
+  const [token] = useState(() => localStorage.getItem('access_token'));
+  const [user] = useState(() => JSON.parse(localStorage.getItem('user') || '{}'));
 
+  // Shared fetch helpers for action handlers
   const fetchTeam = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/teams/me', {
+      const res = await fetch('http://127.0.0.1:8000/api/teams/me', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
-        setTeam(data);
+        setTeam(await res.json());
       } else {
         setTeam(null);
       }
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchProblemStatements = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/ps');
+      const res = await fetch('http://127.0.0.1:8000/api/ps');
       if (res.ok) {
-        const data = await res.json();
-        setProblemStatements(data);
+        setProblemStatements(await res.json());
       }
     } catch (err) {
       console.error(err);
     }
   };
 
+  // Initial load
   useEffect(() => {
-    fetchTeam();
-    fetchProblemStatements();
-    // eslint-disable-next-line
-  }, []);
+    let isMounted = true;
+    const loadDashboardData = async () => {
+      try {
+        const [teamRes, psRes] = await Promise.all([
+          fetch('http://127.0.0.1:8000/api/teams/me', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('http://127.0.0.1:8000/api/ps')
+        ]);
+        
+        if (isMounted) {
+          if (teamRes.ok) setTeam(await teamRes.json());
+          else setTeam(null);
+          
+          if (psRes.ok) setProblemStatements(await psRes.json());
+        }
+      } catch (err) {
+        console.error("Dashboard fetch error:", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    
+    loadDashboardData();
+    return () => { isMounted = false; };
+  }, [token]);
 
   // Timer logic for Sept 7, 2026, 1:00 PM IST (UTC+5:30)
   useEffect(() => {
     const targetDate = new Date('2026-09-07T13:00:00+05:30').getTime();
     
     const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
+      const distance = targetDate - Date.now();
       
       if (distance < 0) {
         clearInterval(interval);
@@ -83,7 +101,7 @@ export function Dashboard() {
   const handleCreateTeam = async () => {
     if (!teamName) return;
     try {
-      const res = await fetch('http://localhost:8000/api/teams/create', {
+      const res = await fetch('http://127.0.0.1:8000/api/teams/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ name: teamName })
@@ -99,7 +117,7 @@ export function Dashboard() {
   const handleAddMember = async () => {
     if (!newMemberEmail) return;
     try {
-      const res = await fetch('http://localhost:8000/api/teams/add-member', {
+      const res = await fetch('http://127.0.0.1:8000/api/teams/add-member', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ email: newMemberEmail })
@@ -117,7 +135,7 @@ export function Dashboard() {
 
   const handleClaimPS = async (ps_id) => {
     try {
-      const res = await fetch('http://localhost:8000/api/ps/claim', {
+      const res = await fetch('http://127.0.0.1:8000/api/ps/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ ps_id })
@@ -136,7 +154,7 @@ export function Dashboard() {
   const handleSubmitFinal = async () => {
     if (!githubUrl || !demoLink) return;
     try {
-      const res = await fetch('http://localhost:8000/api/submissions/final', {
+      const res = await fetch('http://127.0.0.1:8000/api/submissions/final', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ github_url: githubUrl, demo_link: demoLink })

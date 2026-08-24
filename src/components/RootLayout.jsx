@@ -40,11 +40,11 @@ export function RootLayout() {
            <Link to="/tracks" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Tracks</Link>
            <Link to="/schedule" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Schedule</Link>
         </div>
-        <a href="#" className="pointer-events-auto hidden md:block">
+        <Link to="/dashboard" className="pointer-events-auto hidden md:block">
           <Button variant="primary" className="shadow-2xl">
             Team Portal
           </Button>
-        </a>
+        </Link>
       </motion.div>
 
       {/* Fixed Canvas Background */}

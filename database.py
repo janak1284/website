@@ -9,7 +9,14 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create the async engine
-engine = create_async_engine(DATABASE_URL, echo=False)
+engine = create_async_engine(
+    DATABASE_URL,
+    echo=False,
+    pool_pre_ping=True,       # Instantly checks if the connection is alive
+    pool_size=10,             # Maintains a healthy number of connections
+    max_overflow=20,          # Allows burst connections during the hackathon
+    pool_recycle=300          # Recycles connections every 5 minutes before Neon drops them
+)
 
 # Session factory for FastAPI dependency injection
 AsyncSessionLocal = sessionmaker(

@@ -20,7 +20,7 @@ IST = timezone(timedelta(hours=5, minutes=30))
 PS_START_TIME = datetime(2026, 9, 7, 12, 30, 0, tzinfo=IST)
 PS_END_TIME = datetime(2026, 9, 7, 13, 0, 0, tzinfo=IST)
 
-@router.get("/")
+@router.get("")
 async def get_problem_statements(db: AsyncSession = Depends(get_db)):
     # Get all active PS
     ps_result = await db.execute(select(ProblemStatement).where(ProblemStatement.is_active == True))
