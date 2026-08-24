@@ -78,7 +78,7 @@ export function Hero({ scrollYProgress }) {
             variants={fadeUpVariants}
             className="flex flex-col sm:flex-row items-center gap-4"
           >
-            <Link to="/login"><Button variant="primary">Register Now</Button></Link>
+            <a href="https://eventhubcc.vit.ac.in/EventHub/" target="_blank" rel="noopener noreferrer"><Button variant="primary">Register Now</Button></a>
             <Link to="/live"><Button variant="secondary">View Schedule</Button></Link>
           </motion.div>
         </motion.div>

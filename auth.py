@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from datetime import datetime, timedelta
 
 from database import get_db
-from models import User
+from models import User, Team
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
@@ -43,7 +43,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
     result = await db.execute(
         select(User)
-        .options(selectinload(User.team), selectinload(User.led_team))
+        .options(
+            selectinload(User.team).selectinload(Team.members),
+            selectinload(User.team).selectinload(Team.problem_statement),
+            selectinload(User.led_team).selectinload(Team.members),
+            selectinload(User.led_team).selectinload(Team.problem_statement)
+        )
         .where(User.id == user_id)
     )
     user = result.scalars().first()
