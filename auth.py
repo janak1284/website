@@ -16,7 +16,6 @@ from models import User, Team
 class CompleteProfileRequest(BaseModel):
     full_name: str
     participant_type: str
-    assigned_software: str | None = None
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
@@ -111,6 +110,5 @@ async def google_auth(google_token: GoogleToken, db: AsyncSession = Depends(get_
 async def complete_profile(request: CompleteProfileRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     user.name = request.full_name
     user.participant_type = request.participant_type
-    user.assigned_software = request.assigned_software
     await db.commit()
     return {"message": "Profile updated successfully"}
