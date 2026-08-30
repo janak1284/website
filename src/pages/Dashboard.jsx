@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { AlertDialog } from '../components/ui/AlertDialog';
 import toast from 'react-hot-toast';
 
 export function Dashboard() {
@@ -22,6 +23,9 @@ export function Dashboard() {
   // Modal state
   const [showClaimModal, setShowClaimModal] = useState(false);
   const [pendingPS, setPendingPS] = useState(null);
+  
+  const [showTrackModal, setShowTrackModal] = useState(false);
+  const [pendingTrack, setPendingTrack] = useState(null);
 
   // Stable tokens
   const [token] = useState(() => localStorage.getItem('access_token'));
@@ -200,19 +204,22 @@ export function Dashboard() {
     } catch (err) { toast.error("An unexpected error occurred"); }
   };
 
-  const handleSelectTrack = async (track) => {
+  const handleSelectTrack = async () => {
+    if (!pendingTrack) return;
     try {
       const res = await fetch('http://127.0.0.1:8000/api/teams/select-track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ track })
+        body: JSON.stringify({ track: pendingTrack })
       });
       if (res.ok) {
-        toast.success(`Track '${track}' locked successfully!`);
+        toast.success(`Track '${pendingTrack}' locked successfully!`);
+        setShowTrackModal(false);
+        setPendingTrack(null);
         fetchTeam();
       } else {
         const data = await res.json();
-        toast.error(data.detail || "An unexpected error occurred");
+        toast.error(data.detail);
       }
     } catch (err) { toast.error("An unexpected error occurred"); }
   };
@@ -333,7 +340,7 @@ export function Dashboard() {
                         <h3 className="text-xl font-bold text-white mb-2">Software & AI</h3>
                         <p className="text-sm text-white/60 mb-6 flex-grow">Build web apps, mobile apps, or train AI models to solve digital challenges.</p>
                         {team.leader_id === user.id ? (
-                          <Button variant="primary" className="w-full mt-auto" onClick={() => handleSelectTrack("software")}>
+                          <Button variant="primary" className="w-full mt-auto" onClick={() => { setPendingTrack("software"); setShowTrackModal(true); }}>
                             Select Software
                           </Button>
                         ) : (
@@ -346,7 +353,7 @@ export function Dashboard() {
                         <h3 className="text-xl font-bold text-white mb-2">Hardware/IoT</h3>
                         <p className="text-sm text-white/60 mb-6 flex-grow">Design circuits, microcontrollers, and IoT systems for physical challenges.</p>
                         {team.leader_id === user.id ? (
-                          <Button variant="primary" className="w-full mt-auto" onClick={() => handleSelectTrack("hardware")}>
+                          <Button variant="primary" className="w-full mt-auto" onClick={() => { setPendingTrack("hardware"); setShowTrackModal(true); }}>
                             Select Hardware
                           </Button>
                         ) : (
@@ -504,6 +511,17 @@ export function Dashboard() {
           </GlassCard>
         </div>
       )}
+
+      {/* Track Selection Confirmation Modal */}
+      <AlertDialog 
+        isOpen={showTrackModal}
+        onClose={() => { setShowTrackModal(false); setPendingTrack(null); }}
+        onConfirm={handleSelectTrack}
+        title="Confirm Track Selection"
+        message={`Warning: You are about to lock your team into the ${pendingTrack} track. This action is permanent and cannot be undone.`}
+        confirmText="Yes, lock it in"
+        cancelText="Cancel"
+      />
     </div>
   );
 }

@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { GlassCard } from '../components/ui/GlassCard';
-import { Input } from '../components/ui/Input';
-import { RadioGroup, RadioGroupItem } from '../components/ui/RadioGroup';
-import { Select } from '../components/ui/Select';
-import { AlertDialog } from '../components/ui/AlertDialog';
 import { Button } from '../components/ui/Button';
 
 export const Onboarding = () => {
@@ -12,105 +9,92 @@ export const Onboarding = () => {
   
   const [fullName, setFullName] = useState('');
   const [participantType, setParticipantType] = useState('internal');
-  const [software, setSoftware] = useState('');
-  
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
 
-  const softwareOptions = [
-    { value: 'vscode', label: 'Visual Studio Code' },
-    { value: 'intellij', label: 'IntelliJ IDEA' },
-    { value: 'figma', label: 'Figma' },
-    { value: 'other', label: 'Other' }
-  ];
-
-  const handleAttemptSubmit = (e) => {
-    e.preventDefault();
-    if (!fullName || !participantType || !software) {
-      alert("Please fill in all fields.");
+  const handleSubmit = async (e) => {
+    e?.preventDefault();
+    if (!fullName || !participantType) {
+      toast.error("Please fill in all fields.");
       return;
     }
-    // Open warning dialog instead of submitting immediately
-    setIsAlertOpen(true);
-  };
 
-  const handleFinalConfirm = () => {
-    setIsAlertOpen(false);
-    // Proceed with submission logic (e.g., API call)
-    console.log("Submitted:", { fullName, participantType, software });
-    // Navigate to dashboard or next step
-    navigate('/dashboard');
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await fetch('http://127.0.0.1:8000/api/auth/complete-profile', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ 
+          full_name: fullName, 
+          participant_type: participantType
+        })
+      });
+      
+      if (res.ok) {
+        toast.success("Profile completed successfully!");
+        navigate('/dashboard');
+      } else {
+        const data = await res.json();
+        toast.error(data.detail || "An unexpected error occurred");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error connecting to backend.");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0710] flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#8B5CF6]/20 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen pt-24 px-4 pb-12 flex items-center justify-center z-10 relative">
+      <GlassCard className="p-12 max-w-md w-full flex flex-col">
+        <h1 className="text-3xl font-display text-white mb-2 text-center">Welcome to Resonance</h1>
+        <p className="text-white/70 text-sm mb-8 text-center">Please complete your profile to continue.</p>
 
-      <GlassCard className="w-full max-w-lg p-8 relative z-10">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-display font-bold text-white mb-2">Welcome to Resonance</h1>
-          <p className="text-white/60 font-sans text-sm">Please complete your profile to continue.</p>
-        </div>
-
-        <form onSubmit={handleAttemptSubmit} className="space-y-6">
-          {/* Step 1: Full Name */}
+        <div className="flex flex-col flex-grow">
           <div>
-            <Input
-              label="Full Name"
+            <label className="text-sm text-white/60 mb-2 block font-sans">Full Name</label>
+            <input
               type="text"
               placeholder="Enter your full name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
+              className="w-full p-3 rounded bg-white/10 text-white mb-6 focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] border-none font-sans"
               required
             />
           </div>
 
-          {/* Step 2: Participant Type */}
           <div>
-            <label className="text-sm text-white/60 font-sans mb-3 block">Participant Type</label>
-            <RadioGroup value={participantType} onChange={setParticipantType}>
-              <RadioGroupItem 
-                value="internal" 
-                label="Internal" 
-                description="I am an internal team member"
-              />
-              <RadioGroupItem 
-                value="external" 
-                label="External" 
-                description="I am an external participant or guest"
-              />
-            </RadioGroup>
+            <label className="text-sm text-white/60 mb-2 block font-sans">Participant Type</label>
+            <div className="flex gap-4 font-sans">
+              <div 
+                onClick={() => setParticipantType('internal')}
+                className={`flex-1 p-4 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                  participantType === 'internal'
+                    ? 'bg-[#8B5CF6]/20 border border-[#8B5CF6]/50'
+                    : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                <span className="text-white font-display text-lg tracking-wide font-medium">Internal Participant</span>
+              </div>
+              
+              <div 
+                onClick={() => setParticipantType('external')}
+                className={`flex-1 p-4 rounded-xl cursor-pointer transition-all duration-200 flex items-center justify-center ${
+                  participantType === 'external'
+                    ? 'bg-[#8B5CF6]/20 border border-[#8B5CF6]/50'
+                    : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                <span className="text-white font-display text-lg tracking-wide font-medium">External Participant</span>
+              </div>
+            </div>
           </div>
 
-          {/* Step 3: Software Selection */}
-          <div>
-            <Select
-              label="Assigned Software"
-              options={softwareOptions}
-              value={software}
-              onChange={setSoftware}
-              required
-            />
-          </div>
-
-          {/* Submit Action */}
-          <div className="pt-4">
-            <Button type="submit" variant="primary" className="w-full bg-[#8B5CF6] hover:bg-purple-600 text-white py-3 rounded-lg font-medium transition-colors">
-              Continue
-            </Button>
-          </div>
-        </form>
+          <Button variant="primary" className="w-full mt-8" onClick={handleSubmit}>
+            Continue
+          </Button>
+        </div>
       </GlassCard>
-
-      <AlertDialog 
-        isOpen={isAlertOpen}
-        onClose={() => setIsAlertOpen(false)}
-        onConfirm={handleFinalConfirm}
-        title="Confirm Selection"
-        message="Warning: You cannot go back or change your software once this selection is confirmed."
-        confirmText="Yes, I'm sure"
-        cancelText="Cancel"
-      />
     </div>
   );
 };

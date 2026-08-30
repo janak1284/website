@@ -20,9 +20,12 @@ class User(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True, nullable=False)
-    name = Column(String, nullable=False)
+    name = Column(String, nullable=True) # Changed to nullable since we may want to enforce onboarding
     avatar_url = Column(String, nullable=True)
     role = Column(Enum(UserRole), default=UserRole.participant)
+    
+    participant_type = Column(String, nullable=True)
+    assigned_software = Column(String, nullable=True)
     
     # Foreign key to the team they join
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)
