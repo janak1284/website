@@ -17,7 +17,11 @@ export function Dashboard() {
   
   const [problemStatements, setProblemStatements] = useState([]);
   const [timeLeft, setTimeLeft] = useState('');
-  const [isTimeUp, setIsTimeUp] = useState(false);
+  const [isWaitTime, setIsWaitTime] = useState(true);
+  
+  // Modal state
+  const [showClaimModal, setShowClaimModal] = useState(false);
+  const [pendingPS, setPendingPS] = useState(null);
 
   // Stable tokens
   const [token] = useState(() => localStorage.getItem('access_token'));
@@ -39,9 +43,12 @@ export function Dashboard() {
     }
   };
 
-  const fetchProblemStatements = async () => {
+  const fetchProblemStatements = async (currentTeam = team) => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/ps');
+      const url = currentTeam?.selected_track 
+        ? `http://127.0.0.1:8000/api/ps?track=${currentTeam.selected_track}` 
+        : 'http://127.0.0.1:8000/api/ps';
+      const res = await fetch(url);
       if (res.ok) {
         setProblemStatements(await res.json());
       }
@@ -61,10 +68,14 @@ export function Dashboard() {
         ]);
         
         if (isMounted) {
-          if (teamRes.ok) setTeam(await teamRes.json());
-          else setTeam(null);
-          
-          if (psRes.ok) setProblemStatements(await psRes.json());
+          if (teamRes.ok) {
+            const teamData = await teamRes.json();
+            setTeam(teamData);
+            fetchProblemStatements(teamData);
+          } else {
+            setTeam(null);
+            fetchProblemStatements(null);
+          }
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -77,22 +88,23 @@ export function Dashboard() {
     return () => { isMounted = false; };
   }, [token]);
 
-  // Timer logic for Sept 7, 2026, 1:00 PM IST (UTC+5:30)
+  // Timer logic for Sept 7, 2026, 12:30 PM IST (UTC+5:30) (Opening time)
   useEffect(() => {
-    const targetDate = new Date('2026-09-07T13:00:00+05:30').getTime();
+    const targetDate = new Date('2026-09-07T12:30:00+05:30').getTime();
     
     const interval = setInterval(() => {
       const distance = targetDate - Date.now();
       
-      if (distance < 0) {
+      if (distance <= 0) {
         clearInterval(interval);
         setTimeLeft('00:00:00');
-        setIsTimeUp(true);
+        setIsWaitTime(false);
       } else {
         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
         setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+        setIsWaitTime(true);
       }
     }, 1000);
     
@@ -152,17 +164,19 @@ export function Dashboard() {
     } catch (err) { toast.error("An unexpected error occurred"); }
   };
 
-  const handleClaimPS = async (ps_id) => {
+  const handleClaimPS = async () => {
+    if (!pendingPS) return;
     try {
       const res = await fetch('http://127.0.0.1:8000/api/ps/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ ps_id })
+        body: JSON.stringify({ ps_id: pendingPS.id })
       });
       if (res.ok) {
         toast.success("Claimed successfully!");
+        setShowClaimModal(false);
+        setPendingPS(null);
         fetchTeam();
-        fetchProblemStatements();
       } else {
         const data = await res.json();
         toast.error(data.detail || "An unexpected error occurred");
@@ -180,6 +194,23 @@ export function Dashboard() {
       });
       if (res.ok) toast.success("Final submission saved!");
       else {
+        const data = await res.json();
+        toast.error(data.detail || "An unexpected error occurred");
+      }
+    } catch (err) { toast.error("An unexpected error occurred"); }
+  };
+
+  const handleSelectTrack = async (track) => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/teams/select-track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ track })
+      });
+      if (res.ok) {
+        toast.success(`Track '${track}' locked successfully!`);
+        fetchTeam();
+      } else {
         const data = await res.json();
         toast.error(data.detail || "An unexpected error occurred");
       }
@@ -286,13 +317,52 @@ export function Dashboard() {
             {/* PS Selection */}
             <div className="md:col-span-2">
               <GlassCard className="p-6 h-full flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-display text-white">Problem Statements</h2>
-                  <div className="text-right">
-                    <p className="text-sm text-white/50 mb-1">Selection Deadline</p>
-                    <div className="font-mono text-xl text-[#C026D3]">{timeLeft}</div>
-                  </div>
-                </div>
+                {!team.selected_track ? (
+                  <>
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-display text-white">Track Selection</h2>
+                    </div>
+                    <div className="text-white/70 mb-8 text-center">
+                      <p>The team leader must lock in a track before problem statements can be claimed.</p>
+                      <p className="text-[#C026D3] font-semibold mt-2">Warning: This choice is permanent.</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
+                      {/* Software Track */}
+                      <div className="border border-white/10 rounded-xl p-6 flex flex-col items-center text-center bg-white/5 hover:bg-white/10 transition-colors">
+                        <h3 className="text-xl font-bold text-white mb-2">Software & AI</h3>
+                        <p className="text-sm text-white/60 mb-6 flex-grow">Build web apps, mobile apps, or train AI models to solve digital challenges.</p>
+                        {team.leader_id === user.id ? (
+                          <Button variant="primary" className="w-full mt-auto" onClick={() => handleSelectTrack("software")}>
+                            Select Software
+                          </Button>
+                        ) : (
+                          <Badge variant="outline" className="w-full justify-center mt-auto py-2 text-white/50">Waiting for Leader</Badge>
+                        )}
+                      </div>
+                      
+                      {/* Hardware Track */}
+                      <div className="border border-white/10 rounded-xl p-6 flex flex-col items-center text-center bg-white/5 hover:bg-white/10 transition-colors">
+                        <h3 className="text-xl font-bold text-white mb-2">Hardware/IoT</h3>
+                        <p className="text-sm text-white/60 mb-6 flex-grow">Design circuits, microcontrollers, and IoT systems for physical challenges.</p>
+                        {team.leader_id === user.id ? (
+                          <Button variant="primary" className="w-full mt-auto" onClick={() => handleSelectTrack("hardware")}>
+                            Select Hardware
+                          </Button>
+                        ) : (
+                          <Badge variant="outline" className="w-full justify-center mt-auto py-2 text-white/50">Waiting for Leader</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-display text-white">Problem Statements <span className="text-sm text-[#A78BFA] ml-2">({team.selected_track} track)</span></h2>
+                      <div className="text-right">
+                        
+                      </div>
+                    </div>
                 
                 {team.ps_id ? (
                   <div className="flex-grow flex items-center justify-center border border-[#8B5CF6]/30 rounded-xl bg-[#8B5CF6]/5 p-6">
@@ -302,31 +372,54 @@ export function Dashboard() {
                       <p className="text-white/70">{team.problem_statement?.description}</p>
                     </div>
                   </div>
+                ) : problemStatements.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center border border-white/5 rounded-xl bg-white/5 flex-grow">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40 w-12 h-12 mb-4">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <p className="text-white/60 text-lg font-display">Problem statements yet to be released.</p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
                     {problemStatements.map(ps => {
                       const isFull = ps.claimed_count >= ps.max_quota;
+                      const isSoftware = team.selected_track === 'software';
+                      const isLocked = isSoftware && isWaitTime;
                       return (
-                        <div key={ps.id} className="border border-white/10 rounded-xl p-4 flex flex-col bg-white/5">
+                        <div key={ps.id} className="border border-white/10 rounded-xl p-4 flex flex-col bg-white/5 relative">
                           <div className="flex justify-between items-start mb-2">
                             <Badge variant="outline">{ps.track}</Badge>
                             <span className="text-xs text-white/50">{ps.claimed_count}/{ps.max_quota} Claimed</span>
                           </div>
                           <h4 className="text-lg font-semibold text-white mb-2">{ps.title}</h4>
                           <p className="text-sm text-white/60 mb-4 flex-grow">{ps.description}</p>
-                          <Button 
-                            variant={isFull || isTimeUp ? "outline" : "primary"}
-                            disabled={isFull || isTimeUp || team.leader_id !== user.id}
-                            onClick={() => handleClaimPS(ps.id)}
-                            className="w-full mt-auto"
-                          >
-                            {isFull ? "Quota Full" : isTimeUp ? "Time Up" : team.leader_id !== user.id ? "Leader Only" : "Claim"}
-                          </Button>
+                          
+                          {isLocked && (
+                            <Badge variant="outline" className="absolute top-4 left-1/2 -translate-x-1/2 text-yellow-400 border-yellow-400/50 bg-yellow-400/10">
+                              Unlocks in {timeLeft}
+                            </Badge>
+                          )}
+                          
+                          {team.leader_id === user.id ? (
+                            <Button 
+                              variant={isFull || isLocked ? "outline" : "primary"}
+                              disabled={isFull || isLocked}
+                              onClick={() => { setPendingPS(ps); setShowClaimModal(true); }}
+                              className="w-full mt-auto"
+                            >
+                              {isFull ? "Quota Full" : isLocked ? "Locked" : "Claim"}
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="mt-auto w-full justify-center py-2 text-white/50 border-white/10">View Only</Badge>
+                          )}
                         </div>
                       )
                     })}
                   </div>
                 )}
+                </>
+              )}
               </GlassCard>
             </div>
           </div>
@@ -334,30 +427,79 @@ export function Dashboard() {
           {/* Final Submission */}
           <GlassCard className="p-6 w-full flex flex-col">
             <h2 className="text-2xl font-display text-white mb-6">Round 4: Final Submission</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
-              <div className="flex flex-col">
-                <label className="block text-sm text-white/70 mb-2">GitHub Repository URL</label>
-                <input 
-                  type="url" 
-                  placeholder="https://github.com/..." 
-                  className="w-full p-3 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] mb-auto"
-                  value={githubUrl}
-                  onChange={(e) => setGithubUrl(e.target.value)}
-                />
+            {team.leader_id === user.id ? (
+              <div className="flex flex-col h-full flex-grow">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow mb-6">
+                  <div className="flex flex-col">
+                    <label className="block text-sm text-white/70 mb-2">GitHub Repository URL</label>
+                    <input 
+                      type="url" 
+                      placeholder="https://github.com/..." 
+                      className="w-full p-3 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] mb-auto"
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="block text-sm text-white/70 mb-2">Demo Video Link</label>
+                    <input 
+                      type="url" 
+                      placeholder="https://youtube.com/..." 
+                      className="w-full p-3 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] mb-auto"
+                      value={demoLink}
+                      onChange={(e) => setDemoLink(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end mt-auto">
+                  <Button variant="primary" onClick={handleSubmitFinal}>Submit Project</Button>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <label className="block text-sm text-white/70 mb-2">Demo Video Link</label>
-                <input 
-                  type="url" 
-                  placeholder="https://youtube.com/..." 
-                  className="w-full p-3 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] mb-auto"
-                  value={demoLink}
-                  onChange={(e) => setDemoLink(e.target.value)}
-                />
+            ) : (
+              <div className="flex-grow flex flex-col items-center justify-center p-8 bg-white/5 border border-white/10 rounded-xl">
+                {team.final_submission ? (
+                  <div className="space-y-4 text-center w-full max-w-md">
+                    <div className="text-xl text-white mb-6 font-display">Submission Completed</div>
+                    <a href={team.final_submission.github_url} target="_blank" rel="noreferrer" className="block w-full p-4 bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 border border-[#8B5CF6]/30 rounded-lg text-[#A78BFA] transition-colors shadow-lg">
+                      View GitHub Repository
+                    </a>
+                    <a href={team.final_submission.demo_link} target="_blank" rel="noreferrer" className="block w-full p-4 bg-[#C026D3]/10 hover:bg-[#C026D3]/20 border border-[#C026D3]/30 rounded-lg text-[#e879f9] transition-colors shadow-lg">
+                      View Demo Video
+                    </a>
+                  </div>
+                ) : (
+                  <div className="text-white/50 text-center text-lg">
+                    Waiting for Team Leader to submit.
+                  </div>
+                )}
               </div>
+            )}
+          </GlassCard>
+        </div>
+      )}
+      
+      {/* Confirmation Modal */}
+      {showClaimModal && pendingPS && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <GlassCard className="p-8 max-w-md w-full border-red-500/30 flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                <path d="M12 9v4"/>
+                <path d="M12 17h.01"/>
+              </svg>
             </div>
-            <div className="mt-6 flex justify-end">
-              <Button variant="primary" onClick={handleSubmitFinal}>Submit Project</Button>
+            <h3 className="text-2xl font-display text-white mb-4">Are you sure?</h3>
+            <p className="text-white/70 mb-8">
+              Once you claim <strong className="text-white">{pendingPS.title}</strong>, your choice is locked in and cannot be changed.
+            </p>
+            <div className="flex gap-4 w-full">
+              <Button variant="outline" className="flex-1" onClick={() => { setShowClaimModal(false); setPendingPS(null); }}>
+                Cancel
+              </Button>
+              <Button variant="primary" className="flex-1 bg-red-500 hover:bg-red-600 border-red-500" onClick={handleClaimPS}>
+                Confirm Claim
+              </Button>
             </div>
           </GlassCard>
         </div>

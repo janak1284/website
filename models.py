@@ -53,8 +53,8 @@ class Team(Base):
     # The leader is a user. Enforce unique so a user can only lead one team.
     leader_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False)
     
-    # The selected problem statement
     ps_id = Column(UUID(as_uuid=True), ForeignKey("problem_statements.id"), nullable=True)
+    selected_track = Column(Enum(TrackType), nullable=True)
     current_round = Column(Integer, default=1)
     
     # Relationships
