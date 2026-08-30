@@ -54,6 +54,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     user = result.scalars().first()
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+        
+    print(f"DEBUG: User {user.id} loaded. team_id={user.team_id}, team={user.team}, led_team={user.led_team}")
     return user
 
 @router.post("/google")

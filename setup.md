@@ -1,3 +1,4 @@
+
 # Resonance 1.0 - Project Setup Guide
 
 This guide explains how to set up both the frontend and backend of the Resonance 1.0 hackathon landing page and portal from scratch.

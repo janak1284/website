@@ -6,11 +6,22 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from database import get_db
-from models import User, Team
+from models import User, Team, FinalSubmission
 from auth import get_current_user
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/teams", tags=["teams"])
+
+@router.get("/debug")
+async def debug_user(user: User = Depends(get_current_user)):
+    return {
+        "user_id": str(user.id),
+        "team_id": str(user.team_id) if user.team_id else None,
+        "has_team": user.team is not None,
+        "has_led_team": user.led_team is not None,
+        "led_team_id": str(user.led_team.id) if user.led_team else None
+    }
+
 
 class CreateTeamRequest(BaseModel):
     name: str
@@ -30,11 +41,11 @@ async def create_team(req: CreateTeamRequest, user: User = Depends(get_current_u
     
     new_team = Team(name=req.name, join_code=join_code, leader_id=user.id)
     db.add(new_team)
-    await db.commit()
-    await db.refresh(new_team)
+    await db.flush()
     
     user.team_id = new_team.id
     await db.commit()
+    await db.refresh(new_team)
     
     return {
         "id": str(new_team.id),
@@ -92,3 +103,63 @@ async def add_member(req: AddMemberRequest, user: User = Depends(get_current_use
     await db.commit()
     
     return {"message": "Member added successfully"}
+
+@router.post("/leave")
+async def leave_team(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if not user.team_id:
+        raise HTTPException(status_code=400, detail="You are not part of any team.")
+        
+    result = await db.execute(
+        select(Team).options(selectinload(Team.members)).where(Team.id == user.team_id)
+    )
+    team = result.scalars().first()
+    
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found.")
+        
+    if team.leader_id == user.id:
+        # Leader leaves -> Disband team
+        # 1. Remove all members
+        for member in team.members:
+            member.team_id = None
+        
+        # 2. Delete final submission if exists
+        sub_result = await db.execute(select(FinalSubmission).where(FinalSubmission.team_id == team.id))
+        submission = sub_result.scalars().first()
+        if submission:
+            await db.delete(submission)
+            
+        # 3. Delete team
+        await db.delete(team)
+        await db.commit()
+        return {"message": "Team disbanded successfully"}
+    else:
+        # Standard member leaves
+        user.team_id = None
+        await db.commit()
+        return {"message": "Left team successfully"}
+
+
+class JoinTeamRequest(BaseModel):
+    join_code: str
+
+@router.post("/join")
+async def join_team(req: JoinTeamRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if user.team_id is not None:
+        raise HTTPException(status_code=400, detail="You are already part of a team.")
+        
+    result = await db.execute(
+        select(Team).options(selectinload(Team.members)).where(Team.join_code == req.join_code)
+    )
+    team = result.scalars().first()
+    
+    if not team:
+        raise HTTPException(status_code=404, detail="Invalid join code.")
+        
+    if len(team.members) >= 4:
+        raise HTTPException(status_code=400, detail="Team capacity reached (Max 4).")
+        
+    user.team_id = team.id
+    await db.commit()
+    
+    return {"message": "Joined team successfully"}

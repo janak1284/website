@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Outlet, useLocation, Link } from 'react-router-dom';
+import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { useScroll, motion, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 
@@ -10,10 +10,17 @@ import { Button } from './ui/Button';
 export function RootLayout() {
   const containerRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const { scrollYProgress, scrollY } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
+
+  const handleLogout = () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   const [mountCanvas, setMountCanvas] = useState(false);
 
@@ -40,11 +47,19 @@ export function RootLayout() {
            <Link to="/tracks" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Tracks</Link>
            <Link to="/schedule" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Schedule</Link>
         </div>
-        <Link to="/dashboard" className="pointer-events-auto hidden md:block">
-          <Button variant="primary" className="shadow-2xl">
-            Team Portal
-          </Button>
-        </Link>
+        {location.pathname === '/dashboard' ? (
+          <div className="pointer-events-auto hidden md:block">
+            <Button variant="magenta" onClick={handleLogout} className="shadow-2xl">
+              Logout
+            </Button>
+          </div>
+        ) : (
+          <Link to="/dashboard" className="pointer-events-auto hidden md:block">
+            <Button variant="primary" className="shadow-2xl">
+              Team Portal
+            </Button>
+          </Link>
+        )}
       </motion.div>
 
       {/* Fixed Canvas Background */}

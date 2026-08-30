@@ -11,6 +11,7 @@ export function Dashboard() {
   // Forms
   const [teamName, setTeamName] = useState('');
   const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [joinCode, setJoinCode] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [demoLink, setDemoLink] = useState('');
   
@@ -114,6 +115,24 @@ export function Dashboard() {
     } catch (err) { toast.error("An unexpected error occurred"); }
   };
 
+  const handleJoinTeam = async () => {
+    if (!joinCode) return;
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/teams/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ join_code: joinCode })
+      });
+      if (res.ok) {
+        toast.success("Joined team successfully!");
+        fetchTeam();
+      } else {
+        const data = await res.json();
+        toast.error(data.detail || "An unexpected error occurred");
+      }
+    } catch (err) { toast.error("An unexpected error occurred"); }
+  };
+
   const handleAddMember = async () => {
     if (!newMemberEmail) return;
     try {
@@ -167,14 +186,33 @@ export function Dashboard() {
     } catch (err) { toast.error("An unexpected error occurred"); }
   };
 
+  const handleLeaveTeam = async () => {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/teams/leave', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast.success(team.leader_id === user.id ? "Team disbanded successfully" : "Left team successfully");
+        setTeam(null);
+      } else {
+        const data = await res.json();
+        toast.error(data.detail || "An unexpected error occurred");
+      }
+    } catch (err) {
+      toast.error("An unexpected error occurred");
+    }
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center pt-24 text-white">Loading...</div>;
 
   return (
     <div className="min-h-screen pt-24 px-4 pb-12 max-w-7xl mx-auto z-10 relative">
       {!team ? (
-        <div className="flex justify-center mt-20">
+        <div className="flex flex-col md:flex-row justify-center mt-20 gap-8">
           <GlassCard className="p-12 max-w-md w-full text-center flex flex-col">
             <h2 className="text-3xl font-display text-white mb-6">Create Your Team</h2>
+            <p className="text-white/70 mb-6 text-sm">Start a new team as a leader.</p>
             <input 
               type="text" 
               placeholder="Team Name" 
@@ -183,6 +221,19 @@ export function Dashboard() {
               onChange={(e) => setTeamName(e.target.value)}
             />
             <Button variant="primary" onClick={handleCreateTeam} className="w-full mt-auto">Create Team</Button>
+          </GlassCard>
+          
+          <GlassCard className="p-12 max-w-md w-full text-center flex flex-col">
+            <h2 className="text-3xl font-display text-white mb-6">Join a Team</h2>
+            <p className="text-white/70 mb-6 text-sm">Join an existing team with a code.</p>
+            <input 
+              type="text" 
+              placeholder="Team Join Code" 
+              className="w-full p-3 rounded bg-white/10 text-white mb-6 focus:outline-none focus:ring-2 focus:ring-[#8B5CF6]"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value)}
+            />
+            <Button variant="primary" onClick={handleJoinTeam} className="w-full mt-auto">Join Team</Button>
           </GlassCard>
         </div>
       ) : (
@@ -219,6 +270,16 @@ export function Dashboard() {
                     <Button variant="outline" size="sm" onClick={handleAddMember} disabled={team.members?.length >= 4}>Add</Button>
                   </div>
                 )}
+                <div className="mt-4 flex">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={team.leader_id === user.id ? "border-red-500/50 text-red-400 hover:bg-red-500/10 w-full" : "w-full"}
+                    onClick={handleLeaveTeam}
+                  >
+                    {team.leader_id === user.id ? "Disband Team" : "Leave Team"}
+                  </Button>
+                </div>
               </GlassCard>
             </div>
             

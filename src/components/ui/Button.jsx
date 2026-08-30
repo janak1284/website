@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -15,6 +15,7 @@ export function Button({
   ...props 
 }) {
   const isPrimary = variant === 'primary';
+  const isMagenta = variant === 'magenta';
   const prefersReducedMotion = useReducedMotion();
   const buttonRef = useRef(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -44,19 +45,21 @@ export function Button({
         "relative flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-colors shadow-lg",
         isPrimary 
           ? "bg-[#8B5CF6] text-white border border-[#4C1D95] hover:bg-[#A78BFA] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)]" 
+          : isMagenta
+          ? "bg-[#C026D3] text-white border border-[#701a75] hover:bg-[#d946ef] hover:shadow-[0_0_20px_rgba(192,38,211,0.5)]"
           : "bg-transparent text-white/70 hover:text-white hover:bg-white/5",
         className
       )}
       {...props}
     >
       {children}
-      {isPrimary && (
+      {(isPrimary || isMagenta) && (
         <motion.div 
           className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20"
           initial={{ x: 0 }}
           whileHover={!prefersReducedMotion ? { x: 4 } : {}}
         >
-          <ArrowRight className="w-3.5 h-3.5" />
+          {isMagenta ? <LogOut className="w-3.5 h-3.5 ml-0.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
         </motion.div>
       )}
     </motion.button>
