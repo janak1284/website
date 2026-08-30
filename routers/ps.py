@@ -21,9 +21,12 @@ PS_START_TIME = datetime(2026, 9, 7, 12, 30, 0, tzinfo=IST)
 PS_END_TIME = datetime(2026, 9, 7, 13, 0, 0, tzinfo=IST)
 
 @router.get("")
-async def get_problem_statements(db: AsyncSession = Depends(get_db)):
+async def get_problem_statements(track: str | None = None, db: AsyncSession = Depends(get_db)):
     # Get all active PS
-    ps_result = await db.execute(select(ProblemStatement).where(ProblemStatement.is_active == True))
+    query = select(ProblemStatement).where(ProblemStatement.is_active == True)
+    if track:
+        query = query.where(ProblemStatement.track == track)
+    ps_result = await db.execute(query)
     statements = ps_result.scalars().all()
     
     # Calculate claimed count for each
@@ -86,6 +89,12 @@ async def claim_problem_statement(req: ClaimPSRequest, user: User = Depends(get_
         
         if not ps or not ps.is_active:
              raise HTTPException(status_code=404, detail="Problem statement not found or not active")
+             
+        if not team.selected_track:
+             raise HTTPException(status_code=403, detail="Your team must lock in a track before claiming a problem statement.")
+             
+        if ps.track != team.selected_track:
+             raise HTTPException(status_code=403, detail="This problem statement does not belong to your team's locked-in track.")
              
         # Check claims
         claims_result = await db.execute(

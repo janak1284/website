@@ -46,8 +46,10 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         .options(
             selectinload(User.team).selectinload(Team.members),
             selectinload(User.team).selectinload(Team.problem_statement),
+            selectinload(User.team).selectinload(Team.final_submission),
             selectinload(User.led_team).selectinload(Team.members),
-            selectinload(User.led_team).selectinload(Team.problem_statement)
+            selectinload(User.led_team).selectinload(Team.problem_statement),
+            selectinload(User.led_team).selectinload(Team.final_submission)
         )
         .where(User.id == user_id)
     )

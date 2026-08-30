@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from database import get_db
-from models import User, Team, FinalSubmission
+from models import User, Team, FinalSubmission, TrackType
 from auth import get_current_user
 from pydantic import BaseModel
 
@@ -65,13 +65,44 @@ async def get_my_team(user: User = Depends(get_current_user)):
         "name": team.name,
         "join_code": team.join_code,
         "leader_id": str(team.leader_id),
+        "selected_track": team.selected_track.value if team.selected_track else None,
         "ps_id": str(team.ps_id) if team.ps_id else None,
         "members": [{"id": str(m.id), "name": m.name, "email": m.email} for m in team.members],
         "problem_statement": {
             "id": str(team.problem_statement.id),
             "title": team.problem_statement.title
-        } if team.problem_statement else None
+        } if team.problem_statement else None,
+        "final_submission": {
+            "github_url": team.final_submission.github_url,
+            "demo_link": team.final_submission.demo_link
+        } if team.final_submission else None
     }
+
+class SelectTrackRequest(BaseModel):
+    track: str
+
+@router.post("/select-track")
+async def select_track(req: SelectTrackRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if not user.team_id:
+        raise HTTPException(status_code=400, detail="You are not part of any team.")
+        
+    result = await db.execute(
+        select(Team).where(Team.id == user.team_id)
+    )
+    team = result.scalars().first()
+    
+    if team.leader_id != user.id:
+        raise HTTPException(status_code=403, detail="Only the team leader can select the track.")
+        
+    if team.selected_track is not None:
+        raise HTTPException(status_code=400, detail="Track already locked.")
+        
+    if req.track not in [TrackType.software.value, TrackType.hardware.value]:
+        raise HTTPException(status_code=400, detail="Invalid track selected.")
+        
+    team.selected_track = TrackType(req.track)
+    await db.commit()
+    return {"message": f"Track '{req.track}' locked successfully!"}
 
 @router.post("/add-member")
 async def add_member(req: AddMemberRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
