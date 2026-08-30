@@ -13,6 +13,11 @@ from datetime import datetime, timedelta
 from database import get_db
 from models import User, Team
 
+class CompleteProfileRequest(BaseModel):
+    full_name: str
+    participant_type: str
+    assigned_software: str | None = None
+
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
 
@@ -79,18 +84,33 @@ async def google_auth(google_token: GoogleToken, db: AsyncSession = Depends(get_
         result = await db.execute(select(User).where(User.email == email))
         user = result.scalars().first()
         
+        is_new_user = False
         if user:
-            user.name = name
+            # We don't overwrite name if it's already set by onboarding
             user.avatar_url = avatar_url
         else:
-            user = User(email=email, name=name, avatar_url=avatar_url)
+            user = User(email=email, avatar_url=avatar_url)
             db.add(user)
+            is_new_user = True
             
         await db.commit()
         await db.refresh(user)
         
         access_token = create_access_token(data={"user_id": str(user.id), "email": user.email})
-        return {"access_token": access_token, "token_type": "bearer", "user": {"id": user.id, "email": user.email, "name": user.name}}
+        return {
+            "access_token": access_token, 
+            "token_type": "bearer", 
+            "user": {"id": str(user.id), "email": user.email, "name": user.name},
+            "is_new_user": is_new_user
+        }
 
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
+@router.post("/complete-profile")
+async def complete_profile(request: CompleteProfileRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    user.name = request.full_name
+    user.participant_type = request.participant_type
+    user.assigned_software = request.assigned_software
+    await db.commit()
+    return {"message": "Profile updated successfully"}

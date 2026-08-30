@@ -18,7 +18,11 @@ export function Login() {
       if (res.ok) {
         localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/dashboard');
+        if (data.is_new_user) {
+          navigate('/onboarding');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         alert("Login failed: " + data.detail);
       }
