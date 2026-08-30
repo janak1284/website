@@ -517,8 +517,8 @@ export function Dashboard() {
         isOpen={showTrackModal}
         onClose={() => { setShowTrackModal(false); setPendingTrack(null); }}
         onConfirm={handleSelectTrack}
-        title="Confirm Track Selection"
-        message={`Warning: You are about to lock your team into the ${pendingTrack} track. This action is permanent and cannot be undone.`}
+        title="Lock in Track?"
+        message={`Warning: You are about to lock your team into the ${pendingTrack === 'software' ? 'Software & AI' : 'Hardware/IoT'} track. This action is permanent and cannot be undone.`}
         confirmText="Yes, lock it in"
         cancelText="Cancel"
       />
