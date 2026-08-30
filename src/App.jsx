@@ -7,6 +7,7 @@ import { Tracks } from './pages/Tracks';
 import { ScheduleLive } from './pages/ScheduleLive';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
+import { Onboarding } from './pages/Onboarding';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="tracks" element={<Tracks />} />
           <Route path="schedule" element={<ScheduleLive />} />
           <Route path="login" element={<Login />} />
+          <Route path="onboarding" element={<Onboarding />} />
           <Route element={<ProtectedRoute />}>
             <Route path="dashboard" element={<Dashboard />} />
           </Route>
