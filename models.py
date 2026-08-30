@@ -28,8 +28,8 @@ class User(Base):
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=True)
     
     # Relationships
-    team = relationship("Team", foreign_keys=[team_id], back_populates="members")
-    led_team = relationship("Team", uselist=False, foreign_keys="[Team.leader_id]", back_populates="leader")
+    team = relationship("Team", foreign_keys="User.team_id", back_populates="members")
+    led_team = relationship("Team", uselist=False, foreign_keys="Team.leader_id", back_populates="leader")
 
 class ProblemStatement(Base):
     __tablename__ = "problem_statements"
@@ -58,8 +58,8 @@ class Team(Base):
     current_round = Column(Integer, default=1)
     
     # Relationships
-    leader = relationship("User", foreign_keys=[leader_id], back_populates="led_team")
-    members = relationship("User", foreign_keys=[User.team_id], back_populates="team")
+    leader = relationship("User", foreign_keys="Team.leader_id", back_populates="led_team")
+    members = relationship("User", foreign_keys="User.team_id", back_populates="team")
     problem_statement = relationship("ProblemStatement", back_populates="teams")
     final_submission = relationship("FinalSubmission", uselist=False, back_populates="team")
 
