@@ -70,18 +70,71 @@ The foreground UI strictly avoids React state (`useState`) for scroll animations
 └── vite.config.js              # Bundler configuration
 ```
 
-## 🛠️ Build & Deployment
+## 🛠️ Setup & Local Development
 
+### 1. Environment Variables Setup
+
+Ensure you have a `.env` file in the root of your project directory. It should contain the following variables:
+
+```env
+# Backend Database Configuration (PostgreSQL with asyncpg driver)
+DATABASE_URL=postgresql+asyncpg://user:password@host/dbname
+
+# Authentication Secrets
+JWT_SECRET=your_super_secret_jwt_string
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+```
+
+### 2. Backend Setup (FastAPI)
+
+1. **Create and activate a virtual environment**:
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate # Windows
+   source venv/bin/activate # macOS/Linux
+   ```
+
+2. **Install Python dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Initialize the Database**:
+   ```bash
+   python -c "import asyncio; from database import init_db; asyncio.run(init_db())"
+   ```
+
+4. **Run the FastAPI Development Server**:
+   ```bash
+   uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   ```
+   The API will be available at `http://localhost:8000` and docs at `http://localhost:8000/docs`.
+
+### 3. Frontend Setup (React + Vite)
+
+1. **Install Node dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Run the Vite Development Server**:
+   ```bash
+   npm run dev
+   ```
+   The frontend development server will start, typically available at `http://localhost:5173`.
+
+## 🚀 Building for Production
+
+**Frontend**:
 ```bash
-# Install dependencies
-npm install
-
-# Start Vite HMR Dev Server (localhost:5173)
-npm run dev
-
-# Build for Production (Minified, tree-shaken output to /dist)
 npm run build
+```
+This will generate optimized static files in the `dist` folder.
 
-# Preview Production Build locally
-npm run preview
+**Backend**:
+Run the Uvicorn server without the `--reload` flag and consider using Gunicorn with Uvicorn workers for better performance.
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
