@@ -1,6 +1,6 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowRight, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -15,28 +15,51 @@ export function Button({
   ...props 
 }) {
   const isPrimary = variant === 'primary';
-  
+  const isMagenta = variant === 'magenta';
+  const prefersReducedMotion = useReducedMotion();
+  const buttonRef = useRef(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e) => {
+    if (!buttonRef.current || prefersReducedMotion) return;
+    const { left, top, width, height } = buttonRef.current.getBoundingClientRect();
+    const x = (e.clientX - left - width / 2) * 0.2;
+    const y = (e.clientY - top - height / 2) * 0.2;
+    setPosition({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setPosition({ x: 0, y: 0 });
+  };
+
   return (
     <motion.button
-      whileHover={{ scale: 1.04 }}
-      whileTap={{ scale: 0.98 }}
+      ref={buttonRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      animate={{ x: position.x, y: position.y }}
+      transition={{ type: 'spring', stiffness: 150, damping: 15, mass: 0.1 }}
+      whileHover={!prefersReducedMotion ? { scale: 1.04 } : {}}
+      whileTap={!prefersReducedMotion ? { scale: 0.98 } : {}}
       className={cn(
-        "relative flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-colors",
+        "relative flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-colors shadow-lg",
         isPrimary 
-          ? "bg-white/10 text-white border border-white/20 hover:bg-white/15" 
-          : "bg-transparent text-white/70 hover:text-white",
+          ? "bg-[#8B5CF6] text-white border border-[#4C1D95] hover:bg-[#A78BFA] hover:shadow-[0_0_20px_rgba(139,92,246,0.5)]" 
+          : isMagenta
+          ? "bg-[#C026D3] text-white border border-[#701a75] hover:bg-[#d946ef] hover:shadow-[0_0_20px_rgba(192,38,211,0.5)]"
+          : "bg-transparent text-white/70 hover:text-white hover:bg-white/5",
         className
       )}
       {...props}
     >
       {children}
-      {isPrimary && (
+      {(isPrimary || isMagenta) && (
         <motion.div 
-          className="flex items-center justify-center w-6 h-6 rounded-full bg-white/10"
+          className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20"
           initial={{ x: 0 }}
-          whileHover={{ x: 4 }}
+          whileHover={!prefersReducedMotion ? { x: 4 } : {}}
         >
-          <ArrowRight className="w-3.5 h-3.5" />
+          {isMagenta ? <LogOut className="w-3.5 h-3.5 ml-0.5" /> : <ArrowRight className="w-3.5 h-3.5" />}
         </motion.div>
       )}
     </motion.button>
