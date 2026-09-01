@@ -34,7 +34,7 @@ export function Dashboard() {
   // Shared fetch helpers for action handlers
   const fetchTeam = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/teams/me', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teams/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -50,8 +50,8 @@ export function Dashboard() {
   const fetchProblemStatements = async (currentTeam = team) => {
     try {
       const url = currentTeam?.selected_track 
-        ? `http://127.0.0.1:8000/api/ps?track=${currentTeam.selected_track}` 
-        : 'http://127.0.0.1:8000/api/ps';
+        ? `${import.meta.env.VITE_API_URL}/api/ps?track=${currentTeam.selected_track}` 
+        : `${import.meta.env.VITE_API_URL}/api/ps`;
       const res = await fetch(url);
       if (res.ok) {
         setProblemStatements(await res.json());
@@ -67,8 +67,8 @@ export function Dashboard() {
     const loadDashboardData = async () => {
       try {
         const [teamRes, psRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/teams/me', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://127.0.0.1:8000/api/ps')
+          fetch(`${import.meta.env.VITE_API_URL}/api/teams/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${import.meta.env.VITE_API_URL}/api/ps`)
         ]);
         
         if (isMounted) {
@@ -118,7 +118,7 @@ export function Dashboard() {
   const handleCreateTeam = async () => {
     if (!teamName) return;
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/teams/create', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teams/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ name: teamName })
@@ -134,7 +134,7 @@ export function Dashboard() {
   const handleJoinTeam = async () => {
     if (!joinCode) return;
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/teams/join', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teams/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ join_code: joinCode })
@@ -152,7 +152,7 @@ export function Dashboard() {
   const handleAddMember = async () => {
     if (!newMemberEmail) return;
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/teams/add-member', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teams/add-member`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ email: newMemberEmail })
@@ -171,7 +171,7 @@ export function Dashboard() {
   const handleClaimPS = async () => {
     if (!pendingPS) return;
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/ps/claim', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ps/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ ps_id: pendingPS.id })
@@ -191,7 +191,7 @@ export function Dashboard() {
   const handleSubmitFinal = async () => {
     if (!githubUrl || !demoLink) return;
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/submissions/final', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/submissions/final`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ github_url: githubUrl, demo_link: demoLink })
@@ -207,7 +207,7 @@ export function Dashboard() {
   const handleSelectTrack = async () => {
     if (!pendingTrack) return;
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/teams/select-track', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teams/select-track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ track: pendingTrack })
@@ -226,7 +226,7 @@ export function Dashboard() {
 
   const handleLeaveTeam = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/teams/leave', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/teams/leave`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
