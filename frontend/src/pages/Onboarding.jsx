@@ -19,7 +19,7 @@ export const Onboarding = () => {
 
     try {
       const token = localStorage.getItem('access_token');
-      const res = await fetch('http://127.0.0.1:8000/api/auth/complete-profile', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/complete-profile`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

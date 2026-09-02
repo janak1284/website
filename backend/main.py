@@ -12,7 +12,11 @@ app = FastAPI(title="Resonance 1.0 API")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust for production
+    allow_origins=[
+        "https://resonancevitc.in",
+        "https://www.resonancevitc.in",
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
