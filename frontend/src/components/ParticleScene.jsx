@@ -278,14 +278,15 @@ export function ParticleScene({ scrollYProgress, pathname }) {
     const repelRadius = prefersReducedMotion ? 1.0 : 1.5;
     const repelStrength = prefersReducedMotion ? 0.2 : 0.6;
     const breathingAmplitude = prefersReducedMotion ? 0 : 0.08 + scroll * 0.05;
+    const mobileScale = window.innerWidth < 768 ? (window.innerWidth / 768) * 0.55 + 0.2 : 1.0;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const idx = i * 3;
 
       // Interpolate Target Position
-      let targetX = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx], shapes[nextShapeIdx][idx], lerpFactor);
-      let targetY = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 1], shapes[nextShapeIdx][idx + 1], lerpFactor);
-      let targetZ = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 2], shapes[nextShapeIdx][idx + 2], lerpFactor);
+      let targetX = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx], shapes[nextShapeIdx][idx], lerpFactor) * mobileScale;
+      let targetY = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 1], shapes[nextShapeIdx][idx + 1], lerpFactor) * mobileScale;
+      let targetZ = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 2], shapes[nextShapeIdx][idx + 2], lerpFactor) * mobileScale;
 
       if (!prefersReducedMotion) {
         // Continuous additive idle breathing wave
