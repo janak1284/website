@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 export function Guidelines() {
   return (
     <div className="min-h-screen bg-[#0A0710] flex flex-col pt-24 pb-12 px-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-4xl w-full mx-auto"
@@ -54,7 +54,7 @@ export function Guidelines() {
               <h2 className="text-2xl font-display text-white">Venue Amenities</h2>
             </div>
             <p className="text-white/70 leading-relaxed flex-grow">
-              High-speed internet, dedicated workspace, meals, midnight refreshments, and tech mentor support.
+              High-speed internet, dedicated workspace, refreshments, and tech mentor support.
             </p>
           </GlassCard>
 
