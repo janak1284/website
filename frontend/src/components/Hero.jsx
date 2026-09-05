@@ -36,24 +36,24 @@ export function Hero({ scrollYProgress }) {
       style={{ opacity, y }}
       className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 pointer-events-none"
     >
-      <div className="max-w-4xl mx-auto text-center pointer-events-auto transform -translate-y-4 translate-x-3">
+      <div className="max-w-4xl mx-auto text-center pointer-events-auto transform md:-translate-y-4 md:translate-x-3">
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="flex flex-col items-center"
         >
-          <motion.div variants={fadeUpVariants} className="mb-6">
+          <motion.div variants={fadeUpVariants} className="mb-4 md:mb-6">
             <Badge icon={Sparkles} className="text-xs md:text-sm px-4 py-2">Code. Create. Innovate.</Badge>
           </motion.div>
 
-          <motion.div variants={fadeUpVariants} className="w-full mb-8">
+          <motion.div variants={fadeUpVariants} className="w-[85%] sm:w-[90%] md:w-full mb-5 md:mb-8 mx-auto">
             <ResonanceWordmark />
           </motion.div>
 
-          <motion.div variants={fadeUpVariants} className="flex flex-row items-center gap-2 md:gap-4 mb-8">
+          <motion.div variants={fadeUpVariants} className="flex items-center justify-center gap-3 md:gap-4 mb-5 md:mb-8">
             <div className="h-[1px] flex-1 max-w-[48px] bg-gradient-to-r from-transparent to-[#8B5CF6]"></div>
-            <span className="text-xs sm:text-lg md:text-2xl text-[#8B5CF6] font-['Orbitron'] tracking-widest uppercase text-center whitespace-nowrap">
+            <span className="text-base sm:text-xl md:text-2xl text-[#8B5CF6] font-['Orbitron'] tracking-widest uppercase text-center whitespace-nowrap">
               48-Hour Hackathon
             </span>
             <div className="h-[1px] flex-1 max-w-[48px] bg-gradient-to-l from-transparent to-[#8B5CF6]"></div>
@@ -61,7 +61,7 @@ export function Hero({ scrollYProgress }) {
 
           <motion.p 
             variants={fadeUpVariants}
-            className="text-sm md:text-xl text-white/70 mb-10 max-w-2xl leading-relaxed flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6"
+            className="text-sm sm:text-base md:text-xl text-white/70 mb-8 md:mb-10 max-w-2xl leading-relaxed flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 mx-auto"
           >
             <span className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8B5CF6] w-4 h-4 md:w-5 md:h-5"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
