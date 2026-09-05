@@ -1,11 +1,11 @@
 name: Deploy FastAPI to Azure VM
-
 on:
   push:
     branches:
       - design1
     paths:
-      - 'backend/**' # Only triggers if files in the backend folder change
+      - 'backend/**'
+  workflow_dispatch: # This single line adds the manual trigger button
 
 jobs:
   deploy:
