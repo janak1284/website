@@ -5,27 +5,43 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const scheduleData = {
   day1: [
-    { time: "09:00 AM", event: "Check-in & Problem Release (Get settled, meet your team and discover the challenge)" },
-    { time: "10:00 AM", event: "Inauguration (Official opening of Resonance 1.0)" },
-    { time: "02:00 PM", event: "Hackathon Begins (The building starts)" },
-    { time: "05:00 PM", event: "Round 1 Idea Evaluation (Pitch your concept and show the potential behind your idea)" },
-    { time: "07:00 PM", event: "Round 1 Results (The overnight grind begins)" }
+    { time: "08:30 AM", event: "Check-in + Problem Release" },
+    { time: "09:00 AM", event: "Opening" },
+    { time: "10:00 AM", event: "Workshop (10:00 AM - 12:00 PM)" },
+    { time: "12:30 PM", event: "Problem Registration (12:30 - 1:00 PM)" },
+    { time: "01:15 PM", event: "Lunch" },
+    { time: "01:40 PM", event: "Venue Check-in" },
+    { time: "02:00 PM", event: "Hackathon Begins" },
+    { time: "05:00 PM", event: "Round 1 Evaluation" },
+    { time: "05:15 PM", event: "Snacks (5:15 - 5:30 PM)" },
+    { time: "07:00 PM", event: "Round 1 Results" },
+    { time: "07:00 PM", event: "Dinner (7:00 - 7:50 PM)" },
+    { time: "08:00 PM", event: "Venue Check-in" },
+    { time: "08:00 PM+", event: "Hackathon Resumes (Night: JAM / Engagement Activities)" }
   ],
   day2: [
-    { time: "07:00 AM", event: "Bonus Round (An extra challenge. Extra opportunity)" },
-    { time: "09:00 AM", event: "Round 2 (Keep building. Keep improving)" },
-    { time: "11:00 AM", event: "Mentor Session (Get guidance from experienced minds)" },
-    { time: "04:00 PM", event: "Round 3 Evaluation (Time to show your progress)" },
-    { time: "05:00 PM", event: "Round 3 Results (The competition gets tighter)" },
-    { time: "08:00 PM", event: "Hackathon Continues (Keep building through the night)" }
+    { time: "07:00 AM", event: "Bonus Round" },
+    { time: "09:00 AM", event: "Round 2 + 50% Breakfast" },
+    { time: "11:00 AM", event: "Mentor Session" },
+    { time: "12:10 PM", event: "Progression Statement" },
+    { time: "04:00 PM", event: "Round 3 Evaluation" },
+    { time: "05:00 PM", event: "Round 3 Results" },
+    { time: "05:10 PM", event: "Snacks + JAM (5:10 - 5:20 PM)" },
+    { time: "06:00 PM", event: "Bonus / Progression Statement" },
+    { time: "07:00 PM", event: "Dinner (7:00 - 7:50 PM)" },
+    { time: "08:00 PM", event: "Venue Check-in" },
+    { time: "08:00 PM+", event: "Hackathon Continues" }
   ],
   day3: [
-    { time: "08:00 AM", event: "Final Bonus Round (One last challenge)" },
-    { time: "10:00 AM", event: "Mentor Session (Final feedback)" },
-    { time: "11:20 AM", event: "Progression Statement (Final refinements)" },
-    { time: "02:30 PM", event: "Building Ends (No more brainstorming. Time to deliver)" },
-    { time: "02:40 PM", event: "Round 4 Final Evaluation (Present. Demonstrate. Defend your solution)" },
-    { time: "By 05:00 PM", event: "Hackathon Closure (And that's a wrap!)" }
+    { time: "12:00 AM", event: "Bonus Statement" },
+    { time: "08:00 AM", event: "Bonus Round" },
+    { time: "09:00 AM", event: "Breakfast Break (9:00 - 10:00 AM)" },
+    { time: "10:00 AM", event: "Mentor Session (10:00 - 11:00 AM)" },
+    { time: "11:20 AM", event: "Progression Statement" },
+    { time: "01:00 PM", event: "Lunch Break (1:00 - 1:30 PM)" },
+    { time: "02:30 PM", event: "Brainstorming Ends" },
+    { time: "02:40 PM", event: "Round 4 Begins & Final Evaluation" },
+    { time: "05:00 PM", event: "Hackathon Closure" }
   ]
 };
 
