@@ -237,7 +237,7 @@ export function ParticleScene({ scrollYProgress, pathname }) {
         let localProgress = (triggerOffset - start) / (sectionHeight || 1);
 
         localProgress = Math.max(0, Math.min(1, localProgress));
-        scrollRotationOffset = localProgress * Math.PI * 4;
+        scrollRotationOffset = localProgress * -Math.PI * 4;
       }
     }
 

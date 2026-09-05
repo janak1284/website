@@ -79,19 +79,18 @@ async def google_auth(google_token: GoogleToken, db: AsyncSession = Depends(get_
         if not email:
             raise ValueError("Email not found in token")
 
-        # Upsert user
+        # Check registered user
         result = await db.execute(select(User).where(User.email == email))
         user = result.scalars().first()
         
-        is_new_user = False
-        if user:
-            # We don't overwrite name if it's already set by onboarding
-            user.avatar_url = avatar_url
-        else:
-            user = User(email=email, avatar_url=avatar_url)
-            db.add(user)
-            is_new_user = True
+        if not user:
+            raise HTTPException(
+                status_code=403, 
+                detail="Access denied. Email not registered as a paid participant. Please log in with the exact email you registered with."
+            )
             
+        user.avatar_url = avatar_url
+        is_new_user = False
         await db.commit()
         await db.refresh(user)
         

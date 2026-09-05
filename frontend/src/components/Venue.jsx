@@ -40,9 +40,9 @@ export default function Venue() {
           </div>
 
           <div className="mt-10 flex gap-4">
-            <button className="px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2">
+            <a href="https://maps.google.com/?q=VIT+Chennai" target="_blank" className="px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2">
               <Navigation className="w-4 h-4" /> Get Directions
-            </button>
+            </a>
           </div>
         </motion.div>
 
@@ -54,21 +54,7 @@ export default function Venue() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative h-[500px] w-full lg:w-[120%] lg:-ml-12 rounded-l-3xl overflow-hidden border border-white/10 shadow-2xl"
         >
-          <div className="absolute inset-0 bg-[#130d26] z-0 flex items-center justify-center">
-            {/* Grid Pattern Background */}
-            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(#8B5CF6 1px, transparent 1px), linear-gradient(90deg, #8B5CF6 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-
-            {/* Map Pin UI */}
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="w-16 h-16 bg-[#8B5CF6]/20 border border-[#8B5CF6] rounded-full flex items-center justify-center mb-4 relative">
-                <div className="absolute inset-0 bg-[#8B5CF6] rounded-full animate-ping opacity-20" />
-                <MapPin className="w-8 h-8 text-[#8B5CF6]" />
-              </div>
-              <div className="px-4 py-2 bg-black/80 backdrop-blur-md rounded-lg border border-white/10 text-white font-medium text-sm">
-                Interactive Map Load
-              </div>
-            </div>
-          </div>
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3890.040784935981!2d80.15085341527373!3d12.84064099094292!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a5259af8e491f67%3A0x944b42131b757d2d!2sVellore%20Institute%20of%20Technology%20-%20VIT%20Chennai!5e0!3m2!1sen!2sin!4v1693000000000!5m2!1sen!2sin" className="absolute inset-0 w-full h-full border-0 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-700" allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
         </motion.div>
 
       </div>
