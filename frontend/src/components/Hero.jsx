@@ -36,7 +36,7 @@ export function Hero({ scrollYProgress }) {
       style={{ opacity, y }}
       className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 pointer-events-none"
     >
-      <div className="max-w-4xl mx-auto text-center pointer-events-auto mt-20">
+      <div className="max-w-4xl mx-auto text-center pointer-events-auto transform -translate-y-4 translate-x-3">
         <motion.div 
           variants={containerVariants}
           initial="hidden"
