@@ -14,7 +14,6 @@ export function Dashboard() {
   const [newMemberEmail, setNewMemberEmail] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
-  const [demoLink, setDemoLink] = useState('');
   
   const [problemStatements, setProblemStatements] = useState([]);
   const [timeLeft, setTimeLeft] = useState('');
@@ -189,12 +188,12 @@ export function Dashboard() {
   };
 
   const handleSubmitFinal = async () => {
-    if (!githubUrl || !demoLink) return;
+    if (!githubUrl) return;
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/submissions/final`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ github_url: githubUrl, demo_link: demoLink })
+        body: JSON.stringify({ github_url: githubUrl })
       });
       if (res.ok) toast.success("Final submission saved!");
       else {
@@ -436,7 +435,7 @@ export function Dashboard() {
             <h2 className="text-2xl font-display text-white mb-6">Round 4: Final Submission</h2>
             {team.leader_id === user.id ? (
               <div className="flex flex-col h-full flex-grow">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow mb-6">
+                <div className="grid grid-cols-1 gap-6 flex-grow mb-6">
                   <div className="flex flex-col">
                     <label className="block text-sm text-white/70 mb-2">GitHub Repository URL</label>
                     <input 
@@ -445,16 +444,6 @@ export function Dashboard() {
                       className="w-full p-3 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] mb-auto"
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="block text-sm text-white/70 mb-2">Demo Video Link</label>
-                    <input 
-                      type="url" 
-                      placeholder="https://youtube.com/..." 
-                      className="w-full p-3 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] mb-auto"
-                      value={demoLink}
-                      onChange={(e) => setDemoLink(e.target.value)}
                     />
                   </div>
                 </div>
@@ -469,9 +458,6 @@ export function Dashboard() {
                     <div className="text-xl text-white mb-6 font-display">Submission Completed</div>
                     <a href={team.final_submission.github_url} target="_blank" rel="noreferrer" className="block w-full p-4 bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 border border-[#8B5CF6]/30 rounded-lg text-[#A78BFA] transition-colors shadow-lg">
                       View GitHub Repository
-                    </a>
-                    <a href={team.final_submission.demo_link} target="_blank" rel="noreferrer" className="block w-full p-4 bg-[#C026D3]/10 hover:bg-[#C026D3]/20 border border-[#C026D3]/30 rounded-lg text-[#e879f9] transition-colors shadow-lg">
-                      View Demo Video
                     </a>
                   </div>
                 ) : (

@@ -71,7 +71,6 @@ class FinalSubmission(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), unique=True, nullable=False)
     github_url = Column(String, nullable=False)
-    demo_link = Column(String, nullable=False)
     submitted_at = Column(DateTime, default=datetime.utcnow)
 
     team = relationship("Team", back_populates="final_submission")

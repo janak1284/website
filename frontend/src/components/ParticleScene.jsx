@@ -245,7 +245,16 @@ export function ParticleScene({ scrollYProgress, pathname }) {
       const mouseX = (state.pointer.x * Math.PI) / 10;
       const mouseY = (state.pointer.y * Math.PI) / 10;
 
-      const targetRotationY = scrollRotationOffset + mouseX;
+      let targetRotationY = (scrollRotationOffset + mouseX) % (Math.PI * 2);
+      
+      groupRef.current.rotation.y = groupRef.current.rotation.y % (Math.PI * 2);
+      
+      const deltaY = targetRotationY - groupRef.current.rotation.y;
+      if (deltaY > Math.PI) {
+        targetRotationY -= Math.PI * 2;
+      } else if (deltaY < -Math.PI) {
+        targetRotationY += Math.PI * 2;
+      }
 
       groupRef.current.rotation.y = THREE.MathUtils.damp(
         groupRef.current.rotation.y,

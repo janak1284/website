@@ -79,7 +79,7 @@ export function Hero({ scrollYProgress }) {
             className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto px-6 sm:px-0"
           >
             <a href="https://eventhubcc.vit.ac.in/EventHub/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto"><Button variant="primary" className="w-full sm:w-auto">Register Now</Button></a>
-            <Link to="/live" className="w-full sm:w-auto"><Button variant="secondary" className="w-full sm:w-auto">View Schedule</Button></Link>
+            <Link to="/schedule" className="w-full sm:w-auto"><Button variant="secondary" className="w-full sm:w-auto">View Schedule</Button></Link>
           </motion.div>
         </motion.div>
       </div>
