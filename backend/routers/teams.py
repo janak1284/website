@@ -37,6 +37,11 @@ async def create_team(req: CreateTeamRequest, user: User = Depends(get_current_u
     if user.team_id is not None:
         raise HTTPException(status_code=400, detail="You are already part of a team.")
         
+    # Check if a team with the same name already exists
+    existing_team = await db.execute(select(Team).where(Team.name == req.name))
+    if existing_team.scalars().first():
+        raise HTTPException(status_code=400, detail="A team with this name already exists. Please choose a different name.")
+        
     join_code = generate_join_code()
     
     new_team = Team(name=req.name, join_code=join_code, leader_id=user.id)
