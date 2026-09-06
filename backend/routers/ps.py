@@ -71,7 +71,7 @@ async def claim_problem_statement(req: ClaimPSRequest, user: User = Depends(get_
         # Time Window Validation
         current_time = datetime.now(IST)
         if team.selected_track == "hardware":
-            hardware_end_time = datetime(2026, 9, 6, 22, 0, 0, tzinfo=IST)
+            hardware_end_time = datetime(2026, 9, 7, 13, 0, 0, tzinfo=IST)
             if current_time >= hardware_end_time:
                 raise HTTPException(status_code=403, detail=f"The selection window for the {team.selected_track} track is currently closed.")
         elif team.selected_track == "software":
