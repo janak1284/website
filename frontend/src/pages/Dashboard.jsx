@@ -92,14 +92,21 @@ export function Dashboard() {
 
   // Background polling for live quotas
   useEffect(() => {
-    if (team && team.selected_track && team.ps_id === null) {
-      const interval = setInterval(() => {
+    if (!team || !team.selected_track) return;
+    
+    fetchProblemStatements(team);
+    
+    let interval;
+    if (team.ps_id === null) {
+      interval = setInterval(() => {
         fetchProblemStatements(team);
       }, 10000);
-      
-      return () => clearInterval(interval);
     }
-  }, [team, team?.ps_id]);
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [team?.selected_track, team?.ps_id]);
 
   const handleCreateTeam = async () => {
     if (!teamName) return;
