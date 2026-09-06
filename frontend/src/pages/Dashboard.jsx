@@ -16,8 +16,8 @@ export function Dashboard() {
   const [githubUrl, setGithubUrl] = useState('');
   
   const [problemStatements, setProblemStatements] = useState([]);
-  const [timeLeft, setTimeLeft] = useState('');
-  const [isWaitTime, setIsWaitTime] = useState(true);
+  const [isLoadingPS, setIsLoadingPS] = useState(true);
+
   
   // Modal state
   const [viewingPS, setViewingPS] = useState(null);
@@ -57,6 +57,8 @@ export function Dashboard() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsLoadingPS(false);
     }
   };
 
@@ -65,10 +67,7 @@ export function Dashboard() {
     let isMounted = true;
     const loadDashboardData = async () => {
       try {
-        const [teamRes, psRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/api/teams/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${import.meta.env.VITE_API_URL}/api/ps`)
-        ]);
+        const teamRes = await fetch(`${import.meta.env.VITE_API_URL}/api/teams/me`, { headers: { 'Authorization': `Bearer ${token}` } });
         
         if (isMounted) {
           if (teamRes.ok) {
@@ -91,28 +90,16 @@ export function Dashboard() {
     return () => { isMounted = false; };
   }, [token]);
 
-  // Timer logic for Sept 7, 2026, 12:30 PM IST (UTC+5:30) (Opening time)
+  // Background polling for live quotas
   useEffect(() => {
-    const targetDate = new Date('2026-09-07T12:30:00+05:30').getTime();
-    
-    const interval = setInterval(() => {
-      const distance = targetDate - Date.now();
+    if (team && team.selected_track && team.ps_id === null) {
+      const interval = setInterval(() => {
+        fetchProblemStatements(team);
+      }, 10000);
       
-      if (distance <= 0) {
-        clearInterval(interval);
-        setTimeLeft('00:00:00');
-        setIsWaitTime(false);
-      } else {
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-        setIsWaitTime(true);
-      }
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, []);
+      return () => clearInterval(interval);
+    }
+  }, [team, team?.ps_id]);
 
   const handleCreateTeam = async () => {
     if (!teamName) return;
@@ -370,20 +357,18 @@ export function Dashboard() {
                       </div>
                     </div>
                 
-                {problemStatements.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center border border-white/5 rounded-xl bg-white/5 flex-grow">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40 w-12 h-12 mb-4">
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                    <p className="text-white/60 text-lg font-display">Problem statements yet to be released.</p>
+                {isLoadingPS ? (
+                  <div className="text-white/50 text-center py-8">Loading problem statements...</div>
+                ) : problemStatements.length === 0 ? (
+                  <div className="bg-white/5 border border-white/10 p-12 rounded-lg flex items-center justify-center w-full">
+                    <p className="text-white/60 text-lg font-medium tracking-wide">
+                      Problem statements not yet released.
+                    </p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
                     {problemStatements.map(ps => {
                       const isClaimedByTeam = team.ps_id === ps.id;
-                      const isLocked = team.selected_track === 'software' && isWaitTime;
-                      
                       return (
                         <div 
                           key={ps.id} 
@@ -400,12 +385,6 @@ export function Dashboard() {
                           </div>
                           <h4 className="text-lg font-semibold text-white mb-2">{ps.title}</h4>
                           <p className="text-sm text-white/60 mb-4 flex-grow line-clamp-3">{ps.description}</p>
-                          
-                          {isLocked && !isClaimedByTeam && (
-                            <Badge variant="outline" className="absolute top-4 left-1/2 -translate-x-1/2 text-yellow-400 border-yellow-400/50 bg-yellow-400/10">
-                              Unlocks in {timeLeft}
-                            </Badge>
-                          )}
                           
                           {isClaimedByTeam && (
                             <Badge variant="glow" className="mt-auto w-full justify-center py-2">Successfully Claimed</Badge>
@@ -478,9 +457,9 @@ export function Dashboard() {
                 <Button 
                   variant="primary" 
                   onClick={() => setShowPSWarning(true)}
-                  disabled={viewingPS.claimed_count >= viewingPS.max_quota || (team.selected_track === 'software' && isWaitTime)}
+                  disabled={viewingPS.claimed_count >= viewingPS.max_quota}
                 >
-                  {viewingPS.claimed_count >= viewingPS.max_quota ? 'Quota Full' : (team.selected_track === 'software' && isWaitTime) ? 'Locked' : 'Select Problem Statement'}
+                  {viewingPS.claimed_count >= viewingPS.max_quota ? 'Quota Full' : 'Select Problem Statement'}
                 </Button>
               )}
             </div>

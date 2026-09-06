@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func
+from sqlalchemy import func, cast, String
 from pydantic import BaseModel
 import uuid
 from datetime import datetime
@@ -24,7 +24,7 @@ async def get_problem_statements(track: str | None = None, db: AsyncSession = De
     # Get all active PS
     query = select(ProblemStatement).where(ProblemStatement.is_active == True)
     if track:
-        query = query.where(ProblemStatement.track == track)
+        query = query.where(func.lower(cast(ProblemStatement.track, String)) == track.lower())
     ps_result = await db.execute(query)
     statements = ps_result.scalars().all()
     
