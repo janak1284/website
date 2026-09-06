@@ -20,8 +20,8 @@ export function Dashboard() {
   const [isWaitTime, setIsWaitTime] = useState(true);
   
   // Modal state
-  const [showClaimModal, setShowClaimModal] = useState(false);
-  const [pendingPS, setPendingPS] = useState(null);
+  const [viewingPS, setViewingPS] = useState(null);
+  const [showPSWarning, setShowPSWarning] = useState(false);
   
   const [showTrackModal, setShowTrackModal] = useState(false);
   const [pendingTrack, setPendingTrack] = useState(null);
@@ -168,17 +168,17 @@ export function Dashboard() {
   };
 
   const handleClaimPS = async () => {
-    if (!pendingPS) return;
+    if (!viewingPS) return;
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ps/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ ps_id: pendingPS.id })
+        body: JSON.stringify({ ps_id: viewingPS.id })
       });
       if (res.ok) {
         toast.success("Claimed successfully!");
-        setShowClaimModal(false);
-        setPendingPS(null);
+        setShowPSWarning(false);
+        setViewingPS(null);
         fetchTeam();
       } else {
         const data = await res.json();
@@ -370,15 +370,7 @@ export function Dashboard() {
                       </div>
                     </div>
                 
-                {team.ps_id ? (
-                  <div className="flex-grow flex items-center justify-center border border-[#8B5CF6]/30 rounded-xl bg-[#8B5CF6]/5 p-6">
-                    <div className="text-center">
-                      <Badge variant="glow" className="mb-4">Successfully Claimed</Badge>
-                      <h3 className="text-2xl text-white font-semibold mb-2">{team.problem_statement?.title}</h3>
-                      <p className="text-white/70">{team.problem_statement?.description}</p>
-                    </div>
-                  </div>
-                ) : problemStatements.length === 0 ? (
+                {problemStatements.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center border border-white/5 rounded-xl bg-white/5 flex-grow">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40 w-12 h-12 mb-4">
                       <circle cx="12" cy="12" r="10" />
@@ -389,35 +381,34 @@ export function Dashboard() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
                     {problemStatements.map(ps => {
-                      const isFull = ps.claimed_count >= ps.max_quota;
-                      const isSoftware = team.selected_track === 'software';
-                      const isLocked = isSoftware && isWaitTime;
+                      const isClaimedByTeam = team.ps_id === ps.id;
+                      const isLocked = team.selected_track === 'software' && isWaitTime;
+                      
                       return (
-                        <div key={ps.id} className="border border-white/10 rounded-xl p-4 flex flex-col bg-white/5 relative">
+                        <div 
+                          key={ps.id} 
+                          className={`border p-4 rounded-lg cursor-pointer transition-all flex flex-col relative ${
+                            isClaimedByTeam 
+                              ? 'border-[#8B5CF6] shadow-[0_0_15px_rgba(139,92,246,0.3)] bg-white/10' 
+                              : 'bg-white/5 border-white/10 hover:bg-white/10'
+                          }`}
+                          onClick={() => setViewingPS(ps)}
+                        >
                           <div className="flex justify-between items-start mb-2">
                             <Badge variant="outline">{ps.track}</Badge>
                             <span className="text-xs text-white/50">{ps.claimed_count}/{ps.max_quota} Claimed</span>
                           </div>
                           <h4 className="text-lg font-semibold text-white mb-2">{ps.title}</h4>
-                          <p className="text-sm text-white/60 mb-4 flex-grow">{ps.description}</p>
+                          <p className="text-sm text-white/60 mb-4 flex-grow line-clamp-3">{ps.description}</p>
                           
-                          {isLocked && (
+                          {isLocked && !isClaimedByTeam && (
                             <Badge variant="outline" className="absolute top-4 left-1/2 -translate-x-1/2 text-yellow-400 border-yellow-400/50 bg-yellow-400/10">
                               Unlocks in {timeLeft}
                             </Badge>
                           )}
                           
-                          {team.leader_id === user.id ? (
-                            <Button 
-                              variant={isFull || isLocked ? "outline" : "primary"}
-                              disabled={isFull || isLocked}
-                              onClick={() => { setPendingPS(ps); setShowClaimModal(true); }}
-                              className="w-full mt-auto"
-                            >
-                              {isFull ? "Quota Full" : isLocked ? "Locked" : "Claim"}
-                            </Button>
-                          ) : (
-                            <Badge variant="outline" className="mt-auto w-full justify-center py-2 text-white/50 border-white/10">View Only</Badge>
+                          {isClaimedByTeam && (
+                            <Badge variant="glow" className="mt-auto w-full justify-center py-2">Successfully Claimed</Badge>
                           )}
                         </div>
                       )
@@ -471,32 +462,42 @@ export function Dashboard() {
         </div>
       )}
       
-      {/* Confirmation Modal */}
-      {showClaimModal && pendingPS && (
+      {/* Details Modal */}
+      {viewingPS && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <GlassCard className="p-8 max-w-md w-full border-red-500/30 flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                <path d="M12 9v4"/>
-                <path d="M12 17h.01"/>
-              </svg>
+          <div className="bg-[#130d26]/95 border border-white/10 p-8 max-w-lg w-full rounded-xl flex flex-col max-h-[90vh]">
+            <h2 className="text-2xl text-white mb-4">{viewingPS.title}</h2>
+            <div className="text-white/70 mb-8 space-y-4 overflow-y-auto pr-2">
+              {viewingPS.description.split('\n').map((para, i) => para && (
+                <p key={i}>{para}</p>
+              ))}
             </div>
-            <h3 className="text-2xl font-display text-white mb-4">Are you sure?</h3>
-            <p className="text-white/70 mb-8">
-              Once you claim <strong className="text-white">{pendingPS.title}</strong>, your choice is locked in and cannot be changed.
-            </p>
-            <div className="flex gap-4 w-full">
-              <Button variant="outline" className="flex-1" onClick={() => { setShowClaimModal(false); setPendingPS(null); }}>
-                Cancel
-              </Button>
-              <Button variant="primary" className="flex-1 bg-red-500 hover:bg-red-600 border-red-500" onClick={handleClaimPS}>
-                Confirm Claim
-              </Button>
+            <div className="flex justify-end gap-4 mt-auto pt-4 border-t border-white/10">
+              <Button variant="outline" onClick={() => setViewingPS(null)}>Close</Button>
+              {team.ps_id === null && team.leader_id === user.id && (
+                <Button 
+                  variant="primary" 
+                  onClick={() => setShowPSWarning(true)}
+                  disabled={viewingPS.claimed_count >= viewingPS.max_quota || (team.selected_track === 'software' && isWaitTime)}
+                >
+                  {viewingPS.claimed_count >= viewingPS.max_quota ? 'Quota Full' : (team.selected_track === 'software' && isWaitTime) ? 'Locked' : 'Select Problem Statement'}
+                </Button>
+              )}
             </div>
-          </GlassCard>
+          </div>
         </div>
       )}
+
+      {/* PS Warning Modal */}
+      <AlertDialog 
+        isOpen={showPSWarning}
+        onClose={() => setShowPSWarning(false)}
+        onConfirm={handleClaimPS}
+        title="Lock in Problem Statement?"
+        message={`Warning: You are about to lock your team into: ${viewingPS?.title}. This action is permanent and cannot be undone.`}
+        confirmText="Yes, lock it in"
+        cancelText="Cancel"
+      />
 
       {/* Track Selection Confirmation Modal */}
       <AlertDialog 
@@ -511,3 +512,4 @@ export function Dashboard() {
     </div>
   );
 }
+
