@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import QRCode from 'react-qr-code';
 import { GlassCard } from '../components/ui/GlassCard';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -25,6 +26,10 @@ export function Dashboard() {
   
   const [showTrackModal, setShowTrackModal] = useState(false);
   const [pendingTrack, setPendingTrack] = useState(null);
+  
+  // Check-in QR State
+  const [checkinToken, setCheckinToken] = useState(null);
+  const [loadingToken, setLoadingToken] = useState(true);
 
   // Stable tokens
   const [token] = useState(() => localStorage.getItem('access_token'));
@@ -77,6 +82,20 @@ export function Dashboard() {
           } else {
             setTeam(null);
             fetchProblemStatements(null);
+          }
+        }
+        
+        if (isMounted) {
+          try {
+            const tokenRes = await fetch(`${import.meta.env.VITE_API_URL}/api/users/checkin-token`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (tokenRes.ok) {
+              const tokenData = await tokenRes.json();
+              setCheckinToken(tokenData.token);
+            }
+          } catch (e) {
+            console.error("Token fetch error", e);
+          } finally {
+            setLoadingToken(false);
           }
         }
       } catch (err) {
@@ -270,8 +289,9 @@ export function Dashboard() {
       ) : (
         <div className="space-y-12">
           {/* Header & Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              {/* Team Overview Card */}
               <GlassCard className="p-6 h-full flex flex-col">
                 <h2 className="text-2xl font-display text-white mb-2">{team.name}</h2>
                 <div className="mb-4">
@@ -315,7 +335,7 @@ export function Dashboard() {
             </div>
             
             {/* PS Selection */}
-            <div className="md:col-span-2">
+            <div className="lg:col-span-2">
               <GlassCard className="p-6 h-full flex flex-col">
                 {!team.selected_track ? (
                   <>
@@ -407,44 +427,70 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* Final Submission */}
-          <GlassCard className="p-6 w-full flex flex-col">
-            <h2 className="text-2xl font-display text-white mb-6">Round 4: Final Submission</h2>
-            {team.leader_id === user.id ? (
-              <div className="flex flex-col h-full flex-grow">
-                <div className="grid grid-cols-1 gap-6 flex-grow mb-6">
-                  <div className="flex flex-col">
-                    <label className="block text-sm text-white/70 mb-2">GitHub Repository URL</label>
-                    <input 
-                      type="url" 
-                      placeholder="https://github.com/..." 
-                      className="w-full p-3 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] mb-auto"
-                      value={githubUrl}
-                      onChange={(e) => setGithubUrl(e.target.value)}
-                    />
+          {/* Bottom Section: Venue Check-in & Final Submission */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            {/* Venue Check-in Card */}
+            <div className="lg:col-span-1 flex flex-col h-full">
+              <GlassCard className="p-6 flex-grow flex flex-col items-center justify-center text-center">
+                <h2 className="text-2xl font-display text-white mb-2">Venue Check-in</h2>
+                <p className="text-white/60 text-sm mb-6">This is your individual QR code. You will need it during venue check-in.</p>
+                {loadingToken ? (
+                  <div className="w-48 h-48 bg-white/5 animate-pulse rounded-lg flex items-center justify-center mx-auto">
+                    <span className="text-white/30 text-sm">Loading...</span>
                   </div>
-                </div>
-                <div className="flex justify-end mt-auto">
-                  <Button variant="primary" onClick={handleSubmitFinal}>Submit Project</Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex-grow flex flex-col items-center justify-center p-8 bg-white/5 border border-white/10 rounded-xl">
-                {team.final_submission ? (
-                  <div className="space-y-4 text-center w-full max-w-md">
-                    <div className="text-xl text-white mb-6 font-display">Submission Completed</div>
-                    <a href={team.final_submission.github_url} target="_blank" rel="noreferrer" className="block w-full p-4 bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 border border-[#8B5CF6]/30 rounded-lg text-[#A78BFA] transition-colors shadow-lg">
-                      View GitHub Repository
-                    </a>
+                ) : checkinToken ? (
+                  <div className="bg-white p-4 rounded-xl inline-block mx-auto shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                    <QRCode value={checkinToken} size={180} />
                   </div>
                 ) : (
-                  <div className="text-white/50 text-center text-lg">
-                    Waiting for Team Leader to submit.
+                  <div className="w-48 h-48 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center p-4 mx-auto">
+                    <span className="text-white/50 text-sm">Check-in QR code pending generation...</span>
                   </div>
                 )}
-              </div>
-            )}
-          </GlassCard>
+              </GlassCard>
+            </div>
+
+            {/* Final Submission */}
+            <div className="lg:col-span-2 flex flex-col h-full">
+              <GlassCard className="p-6 flex-grow flex flex-col">
+                <h2 className="text-2xl font-display text-white mb-6">Round 4: Final Submission</h2>
+                {team.leader_id === user.id ? (
+                  <div className="flex flex-col h-full flex-grow">
+                    <div className="grid grid-cols-1 gap-6 flex-grow mb-6">
+                      <div className="flex flex-col">
+                        <label className="block text-sm text-white/70 mb-2">GitHub Repository URL</label>
+                        <input 
+                          type="url" 
+                          placeholder="https://github.com/..." 
+                          className="w-full p-3 rounded bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] mb-auto"
+                          value={githubUrl}
+                          onChange={(e) => setGithubUrl(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end mt-auto">
+                      <Button variant="primary" onClick={handleSubmitFinal}>Submit Project</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex-grow flex flex-col items-center justify-center p-8 bg-white/5 border border-white/10 rounded-xl">
+                    {team.final_submission ? (
+                      <div className="space-y-4 text-center w-full max-w-md">
+                        <div className="text-xl text-white mb-6 font-display">Submission Completed</div>
+                        <a href={team.final_submission.github_url} target="_blank" rel="noreferrer" className="block w-full p-4 bg-[#8B5CF6]/10 hover:bg-[#8B5CF6]/20 border border-[#8B5CF6]/30 rounded-lg text-[#A78BFA] transition-colors shadow-lg">
+                          View GitHub Repository
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="text-white/50 text-center text-lg">
+                        Waiting for Team Leader to submit.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </GlassCard>
+            </div>
+          </div>
         </div>
       )}
       

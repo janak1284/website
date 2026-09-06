@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from auth import router as auth_router
 from routers.teams import router as teams_router
+from routers.users import router as users_router
 from routers.ps import router as ps_router
 from routers.submissions import router as submissions_router
 from routers.admin import router as admin_router
@@ -27,6 +28,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router)
+app.include_router(users_router)
 app.include_router(teams_router)
 app.include_router(ps_router)
 app.include_router(submissions_router)

@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from database import get_db
-from models import User, Team, FinalSubmission, TrackType
+from models import User, Team, FinalSubmission, TrackType, Score
 from auth import get_current_user
 from pydantic import BaseModel
 
@@ -155,6 +155,14 @@ async def leave_team(user: User = Depends(get_current_user), db: AsyncSession = 
         
     if team.leader_id == user.id:
         # Leader leaves -> Disband team
+        
+        # Check if team has scores
+        score_result = await db.execute(select(Score).where(Score.team_id == team.id))
+        has_scores = score_result.scalars().first() is not None
+        
+        if has_scores:
+            raise HTTPException(status_code=400, detail="Cannot disband a team that has already been graded.")
+            
         # 1. Remove all members
         for member in team.members:
             member.team_id = None
