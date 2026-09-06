@@ -16,16 +16,16 @@ export default function Venue() {
           className="pr-0 lg:pr-12"
         >
           <div className="mb-8">
-            <span className="inline-block px-3 py-1 bg-[#8B5CF6]/20 border border-[#8B5CF6]/50 text-[#8B5CF6] text-xs font-bold uppercase tracking-widest rounded-full mb-6">In-Person & Virtual</span>
+            <span className="inline-block px-3 py-1 bg-[#8B5CF6]/20 border border-[#8B5CF6]/50 text-[#8B5CF6] text-xs font-bold uppercase tracking-widest rounded-full mb-6">In-Person</span>
             <h2 className="text-5xl md:text-7xl font-bold text-white mb-6 font-display">The Nexus</h2>
-            <p className="text-white/60 text-lg max-w-md">Our main hub for the 48 hours. A state-of-the-art facility equipped with hardware labs, rest zones, and infinite coffee.</p>
+            <p className="text-white/60 text-lg max-w-md">Our main hub for the 48 hours.</p>
           </div>
 
           <div className="space-y-8 border-t border-white/10 pt-8 mt-8">
             <div className="flex items-start gap-4">
               <MapPin className="w-6 h-6 text-[#C026D3] flex-shrink-0 mt-1" />
               <div>
-                <h4 className="text-xl font-bold text-white mb-1 font-display">School of Computer Science and Engineering (SCOPE)</h4>
+                <h4 className="text-xl font-bold text-white mb-1 font-display">MG Auditorium</h4>
                 <p className="text-white/50">VIT Chennai</p>
               </div>
             </div>
