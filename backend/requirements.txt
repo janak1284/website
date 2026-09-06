@@ -8,3 +8,5 @@ google-auth
 requests
 pydantic
 gunicorn
+passlib[bcrypt]
+python-multipart

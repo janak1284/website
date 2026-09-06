@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hackathon Judging Console</title>
+<style>
+  :root{
+    --bg:#0F1115;
+    --panel:#171A21;
+    --panel-2:#1E222B;
+    --line:#2A2F3A;
+    --text:#E8E9ED;
+    --muted:#8A8F9C;
+    --amber:#FFB020;
+    --hw:#FF6B4A;
+    --sw:#22C7B8;
+    --danger:#FF5C5C;
+    --mono: 'Courier New', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); min-height:100vh;
+  }
+  .wrap{max-width:1100px; margin:0 auto; padding:28px 20px 80px;}
+
+  /* Header */
+  header{display:flex; justify-content:space-between; align-items:flex-end; gap:20px; margin-bottom:24px; flex-wrap:wrap; border-bottom:1px solid var(--line); padding-bottom:18px;}
+  .brand-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:2px; color:var(--amber); text-transform:uppercase;}
+  h1{margin:4px 0 0; font-size:28px; font-weight:700; letter-spacing:-0.5px;}
+  header input#eventName{
+    background:transparent; border:none; color:var(--text); font-size:28px; font-weight:700;
+    letter-spacing:-0.5px; width:420px; max-width:60vw; border-bottom:1px dashed transparent;
+  }
+  header input#eventName:hover, header input#eventName:focus{border-bottom:1px dashed var(--muted); outline:none;}
+  .stat{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right;}
+  .stat b{color:var(--text); font-size:18px; display:block;}
+
+  /* Track tabs */
+  .tabs{display:flex; gap:8px; margin-bottom:20px;}
+  .tab{
+    flex:1; padding:14px 18px; border-radius:10px; border:1px solid var(--line); background:var(--panel);
+    cursor:pointer; font-weight:600; font-size:14px; display:flex; align-items:center; gap:10px;
+    transition:.15s;
+  }
+  .tab .dot{width:9px; height:9px; border-radius:50%; background:var(--muted);}
+  .tab.active{border-color:var(--accent); background:var(--panel-2);}
+  .tab.active .dot{background:var(--accent);}
+  .tab:hover{background:var(--panel-2);}
+  .tab small{display:block; color:var(--muted); font-weight:400; font-family:var(--mono); font-size:11px; margin-top:2px;}
+
+  /* Panels */
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px;}
+  .panel h2{font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin:0 0 16px; font-family:var(--mono); font-weight:600;}
+
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;}
+  label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px;}
+  input[type=text], input[type=number]{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:10px 12px; border-radius:8px; font-size:14px;
+  }
+  input:focus{outline:1px solid var(--accent);}
+
+  /* Criteria */
+  .criterion{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:10px; background:var(--panel-2);}
+  .crit-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;}
+  .crit-name{font-weight:600; font-size:14.5px;}
+  .crit-weight{font-family:var(--mono); font-size:11px; color:var(--muted);}
+  .crit-desc{font-size:12.5px; color:var(--muted); margin-bottom:10px; line-height:1.4;}
+  .score-picker{display:flex; gap:6px;}
+  .score-btn{
+    flex:1; padding:10px 0; text-align:center; border-radius:7px; border:1px solid var(--line);
+    background:var(--panel); cursor:pointer; font-family:var(--mono); font-weight:700; font-size:14px; color:var(--muted);
+  }
+  .score-btn.sel{background:var(--accent); color:#0F1115; border-color:var(--accent);}
+  .score-btn:hover{border-color:var(--accent);}
+
+  /* Total bar */
+  .total-bar{display:flex; align-items:center; justify-content:space-between; gap:20px; position:sticky; bottom:0; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-top:6px;}
+  .total-bar .num{font-family:var(--mono); font-size:32px; font-weight:700; color:var(--accent);}
+  .total-bar .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px;}
+  button.primary{
+    background:var(--accent); border:none; color:#0F1115; font-weight:700; padding:14px 26px;
+    border-radius:9px; cursor:pointer; font-size:14px;
+  }
+  button.primary:hover{filter:brightness(1.08);}
+  button.ghost{background:transparent; border:1px solid var(--line); color:var(--text); padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12.5px;}
+  button.ghost:hover{border-color:var(--muted);}
+  button.danger{color:var(--danger); border-color:var(--danger);}
+
+  /* Leaderboard */
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  th{text-align:left; font-family:var(--mono); font-size:11px; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--line);}
+  td{padding:10px; border-bottom:1px solid var(--line);}
+  tr:hover td{background:var(--panel-2);}
+  .rank{font-family:var(--mono); color:var(--muted);}
+  .rank.cut{color:var(--danger);}
+  .team-cell b{display:block;}
+  .team-cell small{color:var(--muted);}
+  .score-cell{font-family:var(--mono); font-weight:700; font-size:15px; text-align:right;}
+  .pill{display:inline-block; font-size:10px; font-family:var(--mono); padding:2px 8px; border-radius:20px; text-transform:uppercase;}
+  .pill.hardware{background:rgba(255,107,74,.15); color:var(--hw);}
+  .pill.software{background:rgba(34,199,184,.15); color:var(--sw);}
+  .lb-actions{display:flex; gap:6px; justify-content:flex-end;}
+  .lb-actions button{background:none; border:none; color:var(--muted); cursor:pointer; font-size:12px;}
+  .lb-actions button:hover{color:var(--text);}
+
+  .lb-toolbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px; flex-wrap:wrap;}
+  .cutline-input{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted);}
+  .cutline-input input{width:60px; padding:6px 8px;}
+
+  .empty{color:var(--muted); font-size:13px; padding:20px 0; text-align:center;}
+  footer{margin-top:30px; font-size:11.5px; color:var(--muted); text-align:center; font-family:var(--mono); line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand-eyebrow">// judging console — offline</div>
+      <input id="eventName" value="Hackathon 2026 — Judging Console">
+    </div>
+    <div class="stat">Entries scored<b id="entryCount">0</b></div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab" id="tab-hardware" onclick="setTrack('hardware')">
+      <span class="dot"></span>
+      <div>Hardware Track<small>Physical / embedded builds</small></div>
+    </div>
+    <div class="tab" id="tab-software" onclick="setTrack('software')">
+      <span class="dot"></span>
+      <div>Software Track<small>Apps, platforms, models</small></div>
+    </div>
+  </div>
+
+  <!-- SCORING PANEL -->
+  <div class="panel">
+    <h2>Team & judge</h2>
+    <div class="row">
+      <div><label>Team name / number</label><input type="text" id="teamName" placeholder="e.g. Team 14 — CircuitBreakers"></div>
+      <div><label>Judge name</label><input type="text" id="judgeName" placeholder="e.g. R. Menon"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Criteria</h2>
+    <div id="criteriaList"></div>
+  </div>
+
+  <div class="total-bar">
+    <div>
+      <div class="lbl">Weighted total</div>
+      <div class="num"><span id="totalScore">0</span><span style="font-size:16px;color:var(--muted)">/100</span></div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="ghost" onclick="resetForm()">Clear form</button>
+      <button class="primary" onclick="saveEntry()">Save score to leaderboard</button>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="panel" style="margin-top:26px;">
+    <h2>Leaderboard — <span id="lbTrackLabel">Hardware</span></h2>
+    <div class="lb-toolbar">
+      <div class="cutline-input">
+        Advance top <input type="number" id="cutoffN" value="8" min="0" onchange="renderLeaderboard()"> teams
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="ghost" onclick="exportCSV()">Export CSV</button>
+        <button class="ghost danger" onclick="clearTrack()">Clear this track</button>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Team</th><th>Judge</th><th style="text-align:right;">Score</th><th></th></tr>
+      </thead>
+      <tbody id="leaderboardBody"></tbody>
+    </table>
+    <div id="lbEmpty" class="empty" style="display:none;">No scores saved for this track yet.</div>
+  </div>
+
+  <footer>
+    All data is stored locally in this browser (localStorage) — nothing leaves this device.<br>
+    Use Export CSV regularly to back up results across judging laptops.
+  </footer>
+</div>
+
+<script>
+const CRITERIA = {
+  shared: [
+    {id:'understanding', name:'Problem Understanding & Relevance', weight:10, desc:'Is the problem real, well-scoped, and clearly tied to the hackathon theme?'},
+    {id:'innovation', name:'Innovation & Originality', weight:15, desc:'How novel is the approach vs. existing solutions? Creative use of tech/ideas.'},
+    {id:'impact', name:'Impact & Feasibility', weight:15, desc:'Would this matter if it existed at scale? Is the path to real-world use credible?'},
+    {id:'presentation', name:'Presentation, Demo & Q&A', weight:20, desc:'Clarity of pitch, quality of live demo, and how well the team handled questions.'},
+  ],
+  hardware: [
+    {id:'hw_function', name:'Prototype Functionality', weight:20, desc:'Does the physical build actually work live, on demand, not just in a video?'},
+    {id:'hw_engineering', name:'Engineering & Build Quality', weight:20, desc:'Robustness, design choices, component integration, and basic safety.'},
+  ],
+  software: [
+    {id:'sw_technical', name:'Technical Implementation & Code Quality', weight:20, desc:'Architecture, correctness, and appropriate use of the tech stack.'},
+    {id:'sw_ux', name:'Usability / UX & Completeness', weight:20, desc:'Is it usable end-to-end? Polish, flow, and how complete the build feels.'},
+  ]
+};
+
+let currentTrack = 'hardware';
+let scores = {}; // {criterionId: 1-5}
+let entries = [];
+
+function loadEntries(){
+  try{
+    const raw = localStorage.getItem('hackathon_entries');
+    entries = raw ? JSON.parse(raw) : [];
+  }catch(e){ entries = []; }
+}
+function persist(){
+  try{ localStorage.setItem('hackathon_entries', JSON.stringify(entries)); }
+  catch(e){ console.warn('Could not persist — storage unavailable in this preview.'); }
+}
+
+function activeCriteria(){
+  return CRITERIA.shared.concat(CRITERIA[currentTrack]);
+}
+
+function setTrack(track){
+  currentTrack = track;
+  document.getElementById('tab-hardware').classList.toggle('active', track==='hardware');
+  document.getElementById('tab-software').classList.toggle('active', track==='software');
+  document.documentElement.style.setProperty('--accent', track==='hardware' ? 'var(--hw)' : 'var(--sw)');
+  document.getElementById('lbTrackLabel').textContent = track==='hardware' ? 'Hardware' : 'Software';
+  scores = {};
+  renderCriteria();
+  renderLeaderboard();
+}
+
+function renderCriteria(){
+  const list = document.getElementById('criteriaList');
+  list.innerHTML = '';
+  activeCriteria().forEach(c=>{
+    const div = document.createElement('div');
+    div.className='criterion';
+    div.innerHTML = `
+      <div class="crit-top">
+        <div class="crit-name">${c.name}</div>
+        <div class="crit-weight">${c.weight} PTS</div>
+      </div>
+      <div class="crit-desc">${c.desc}</div>
+      <div class="score-picker" id="picker-${c.id}">
+        ${[1,2,3,4,5].map(n=>`<div class="score-btn" data-n="${n}" onclick="setScore('${c.id}',${n})">${n}</div>`).join('')}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+  updateTotal();
+}
+
+function setScore(id, n){
+  scores[id] = n;
+  document.querySelectorAll(`#picker-${id} .score-btn`).forEach(btn=>{
+    btn.classList.toggle('sel', parseInt(btn.dataset.n)===n);
+  });
+  updateTotal();
+}
+
+function updateTotal(){
+  let total = 0;
+  activeCriteria().forEach(c=>{
+    const s = scores[c.id] || 0;
+    total += (s/5)*c.weight;
+  });
+  document.getElementById('totalScore').textContent = total.toFixed(1);
+}
+
+function resetForm(){
+  scores = {};
+  document.getElementById('teamName').value='';
+  document.getElementById('judgeName').value='';
+  renderCriteria();
+}
+
+function saveEntry(){
+  const team = document.getElementById('teamName').value.trim();
+  const judge = document.getElementById('judgeName').value.trim();
+  if(!team){ alert('Enter a team name/number before saving.'); return; }
+  const missing = activeCriteria().filter(c => !scores[c.id]);
+  if(missing.length){ alert('Score every criterion before saving: ' + missing.map(m=>m.name).join(', ')); return; }
+
+  let total = 0;
+  const breakdown = {};
+  activeCriteria().forEach(c=>{
+    total += (scores[c.id]/5)*c.weight;
+    breakdown[c.id] = scores[c.id];
+  });
+
+  entries.push({
+    id: Date.now(),
+    track: currentTrack,
+    team, judge,
+    total: Math.round(total*10)/10,
+    breakdown
+  });
+  persist();
+  resetForm();
+  renderLeaderboard();
+}
+
+function renderLeaderboard(){
+  const body = document.getElementById('leaderboardBody');
+  const empty = document.getElementById('lbEmpty');
+  const rows = entries.filter(e=>e.track===currentTrack).sort((a,b)=>b.total-a.total);
+  document.getElementById('entryCount').textContent = entries.length;
+
+  body.innerHTML='';
+  empty.style.display = rows.length ? 'none' : 'block';
+  const cutoff = parseInt(document.getElementById('cutoffN').value) || 0;
+
+  rows.forEach((e, i)=>{
+    const tr = document.createElement('tr');
+    const rankCut = (cutoff>0 && i>=cutoff) ? 'cut' : '';
+    tr.innerHTML = `
+      <td class="rank ${rankCut}">${i+1}</td>
+      <td class="team-cell"><b>${e.team}</b><small>${e.track}</small></td>
+      <td>${e.judge || '—'}</td>
+      <td class="score-cell">${e.total}</td>
+      <td class="lb-actions"><button onclick="deleteEntry(${e.id})">Delete</button></td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+function deleteEntry(id){
+  entries = entries.filter(e=>e.id!==id);
+  persist();
+  renderLeaderboard();
+}
+
+function clearTrack(){
+  if(!confirm(`Delete all saved scores for the ${currentTrack} track?`)) return;
+  entries = entries.filter(e=>e.track!==currentTrack);
+  persist();
+  renderLeaderboard();
+}
+
+function exportCSV(){
+  const rows = entries.filter(e=>e.track===currentTrack).sort((a,b)=>b.total-a.total);
+  if(!rows.length){ alert('No entries to export for this track.'); return; }
+  const critIds = activeCriteria().map(c=>c.id);
+  const header = ['rank','team','judge','total', ...critIds];
+  const lines = [header.join(',')];
+  rows.forEach((e,i)=>{
+    const line = [i+1, `"${e.team}"`, `"${e.judge||''}"`, e.total, ...critIds.map(id=>e.breakdown[id]||'')];
+    lines.push(line.join(','));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${currentTrack}_leaderboard.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// init
+loadEntries();
+setTrack('hardware');
+</script>
+</body>
+</html>

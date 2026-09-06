@@ -7,6 +7,8 @@ from routers.teams import router as teams_router
 from routers.ps import router as ps_router
 from routers.submissions import router as submissions_router
 from routers.admin import router as admin_router
+from auth_judging import router as auth_judging_router
+from routers.judging import router as judging_router
 
 app = FastAPI(title="Resonance 1.0 API")
 
@@ -29,6 +31,8 @@ app.include_router(teams_router)
 app.include_router(ps_router)
 app.include_router(submissions_router)
 app.include_router(admin_router)
+app.include_router(auth_judging_router)
+app.include_router(judging_router)
 
 @app.get("/")
 async def root():

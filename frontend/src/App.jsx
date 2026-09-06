@@ -8,6 +8,7 @@ import { ScheduleLive } from './pages/ScheduleLive';
 import { Dashboard } from './pages/Dashboard';
 import { Login } from './pages/Login';
 import { Onboarding } from './pages/Onboarding';
+import { JudgingConsole } from './pages/JudgingConsole';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
           </Route>
         </Route>
+        <Route path="/judging" element={<JudgingConsole />} />
       </Routes>
     </BrowserRouter>
   );
