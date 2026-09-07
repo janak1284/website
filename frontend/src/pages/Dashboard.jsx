@@ -408,7 +408,9 @@ export function Dashboard() {
                         >
                           <div className="flex justify-between items-start mb-2">
                             <Badge variant="outline">{ps.track}</Badge>
-                            <span className="text-xs text-white/50">{ps.claimed_count}/{ps.max_quota} Claimed</span>
+                            {ps.track !== 'software' && (
+                              <span className="text-xs text-white/50">{ps.claimed_count}/{ps.max_quota} Claimed</span>
+                            )}
                           </div>
                           <h4 className="text-lg font-semibold text-white mb-2">{ps.title}</h4>
                           <p className="text-sm text-white/60 mb-4 flex-grow line-clamp-3">{ps.description}</p>
