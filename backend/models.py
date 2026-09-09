@@ -70,6 +70,17 @@ class Team(Base):
     final_submission = relationship("FinalSubmission", uselist=False, back_populates="team")
     scores = relationship("Score", back_populates="team")
 
+class ShortlistedTeam(Base):
+    __tablename__ = "shortlisted_team"
+
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    name = Column(String, nullable=False)
+    join_code = Column(String(6), nullable=False)
+    leader_id = Column(UUID(as_uuid=True), nullable=False)
+    ps_id = Column(UUID(as_uuid=True), nullable=True)
+    selected_track = Column(Enum(TrackType), nullable=True)
+    current_round = Column(Integer, default=1)
+
 class FinalSubmission(Base):
     __tablename__ = "final_submissions"
 

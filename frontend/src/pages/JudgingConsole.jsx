@@ -47,10 +47,11 @@ export function JudgingConsole() {
   // Session Setup State
   const [sessionSetupComplete, setSessionSetupComplete] = useState(false);
   const [judgeDisplayName, setJudgeDisplayName] = useState('');
-  const [globalSelectedRound, setGlobalSelectedRound] = useState(1);
+  
 
   // Judging State
   const [currentTrack, setCurrentTrack] = useState('hardware');
+  const [selectedRound, setSelectedRound] = useState(2);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState('');
   const [scores, setScores] = useState({});
@@ -59,6 +60,7 @@ export function JudgingConsole() {
   // Admin State
   const [leaderboard, setLeaderboard] = useState([]);
   const [cutoffN, setCutoffN] = useState(8);
+  const [leaderboardRound, setLeaderboardRound] = useState('all');
 
   useEffect(() => {
     if (token) {
@@ -75,6 +77,12 @@ export function JudgingConsole() {
       }
     }
   }, [token, sessionSetupComplete]);
+
+  useEffect(() => {
+    if (userContext?.role === 'admin' && sessionSetupComplete) {
+      fetchLeaderboard();
+    }
+  }, [leaderboardRound]);
 
   // Recalculate total when scores or track change
   useEffect(() => {
@@ -103,7 +111,11 @@ export function JudgingConsole() {
 
   const fetchLeaderboard = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/judging/leaderboard`, {
+      const url = new URL(`${import.meta.env.VITE_API_URL}/api/judging/leaderboard`);
+      if (leaderboardRound !== 'all') {
+        url.searchParams.append('round_number', leaderboardRound);
+      }
+      const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -179,7 +191,7 @@ export function JudgingConsole() {
         body: JSON.stringify({
           team_id: selectedTeam,
           track: currentTrack,
-          round_number: globalSelectedRound,
+          round_number: selectedRound,
           judge_display_name: judgeDisplayName,
           total_score: Math.round(totalScore * 10) / 10,
           breakdown: scores
@@ -189,7 +201,7 @@ export function JudgingConsole() {
       if (res.ok) {
         const data = await res.json();
         if (data.message.includes("overwritten")) {
-          toast.success(`Admin: Overwrote score for Round ${globalSelectedRound}`);
+          toast.success(`Admin: Overwrote score for Round ${selectedRound}`);
         } else {
           toast.success("Score submitted successfully");
         }
@@ -341,7 +353,7 @@ export function JudgingConsole() {
                 value={currentTrack}
                 onChange={(e) => {
                   setCurrentTrack(e.target.value);
-                  setGlobalSelectedRound(1); // Reset round on track change
+                  setSelectedRound(e.target.value === 'hardware' ? 2 : 3); // Reset round on track change
                 }}
               >
                 <option value="hardware" className="bg-[#130d26]">Hardware</option>
@@ -352,13 +364,20 @@ export function JudgingConsole() {
               <label className="block text-xs text-white/60 mb-1">Select Round</label>
               <select
                 className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:outline-none focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6] transition-all"
-                value={globalSelectedRound}
-                onChange={(e) => setGlobalSelectedRound(parseInt(e.target.value))}
+                value={selectedRound}
+                onChange={(e) => setSelectedRound(parseInt(e.target.value))}
               >
-                <option value={1} className="bg-[#130d26]">Round 1</option>
-                <option value={2} className="bg-[#130d26]">Round 2</option>
-                {currentTrack === 'software' && <option value={3} className="bg-[#130d26]">Round 3</option>}
-                {currentTrack === 'software' && <option value={4} className="bg-[#130d26]">Round 4</option>}
+                {currentTrack === 'hardware' ? (
+                  <>
+                    <option value={2} className="bg-[#130d26]">Round 2</option>
+                    <option value={3} className="bg-[#130d26]">Round 3 (Finals)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value={3} className="bg-[#130d26]">Round 3</option>
+                    <option value={4} className="bg-[#130d26]">Round 4 (Grand Finale)</option>
+                  </>
+                )}
               </select>
             </div>
             <button
@@ -386,7 +405,7 @@ export function JudgingConsole() {
   const trackLeaderboard = leaderboard.filter(e => e.track === currentTrack);
   
   const selectedTeamData = activeTeams.find(t => t.id === selectedTeam);
-  const isSelectedTeamScored = selectedTeamData?.scored_rounds?.includes(globalSelectedRound);
+  const isSelectedTeamScored = selectedTeamData?.scored_rounds?.includes(selectedRound);
 
   return (
     <div className="min-h-screen bg-[#130d26] text-white pb-20">
@@ -400,7 +419,7 @@ export function JudgingConsole() {
           <div className="flex items-center gap-6">
             <div className="text-right text-[12px] text-white/60">
               Judging as <b className="text-white">{judgeDisplayName}</b><br/>
-              Round {globalSelectedRound}
+              Round {selectedRound}
             </div>
             <button 
               onClick={() => { setSessionSetupComplete(false); setSelectedTeam(''); setScores({}); }}
@@ -423,7 +442,7 @@ export function JudgingConsole() {
             onClick={() => { 
               if (currentTrack !== 'hardware') {
                 setCurrentTrack('hardware'); 
-                setGlobalSelectedRound(1); 
+                setSelectedRound(2); 
                 setScores({}); 
                 setSelectedTeam(''); 
               }
@@ -444,7 +463,7 @@ export function JudgingConsole() {
             onClick={() => { 
               if (currentTrack !== 'software') {
                 setCurrentTrack('software'); 
-                setGlobalSelectedRound(1); 
+                setSelectedRound(3); 
                 setScores({}); 
                 setSelectedTeam(''); 
               }
@@ -465,7 +484,7 @@ export function JudgingConsole() {
 
         {isSelectedTeamScored && (
           <div className="bg-[#FFB020]/10 border border-[#FFB020]/30 text-[#FFB020] rounded-xl p-4 mb-6 text-sm flex items-center gap-2">
-            <b>Warning:</b> This team has already been graded for Round {globalSelectedRound}. {userContext?.role === 'admin' ? "Saving will overwrite the existing score." : ""}
+            <b>Warning:</b> This team has already been graded for Round {selectedRound}. {userContext?.role === 'admin' ? "Saving will overwrite the existing score." : ""}
           </div>
         )}
 
@@ -480,7 +499,7 @@ export function JudgingConsole() {
             >
               <option value="" className="bg-[#130d26]">-- Select a team in the {currentTrack} track --</option>
               {activeTeams.map(t => {
-                const isScored = t.scored_rounds?.includes(globalSelectedRound);
+                const isScored = t.scored_rounds?.includes(selectedRound);
                 const isAdmin = userContext?.role === 'admin';
                 const disabled = isScored && !isAdmin;
                 
@@ -577,7 +596,27 @@ export function JudgingConsole() {
                 /> 
                 teams
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                <select
+                  className="bg-black/20 border border-white/10 rounded px-2 py-1.5 text-[12.5px] text-white focus:outline-none focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6]"
+                  value={leaderboardRound}
+                  onChange={(e) => setLeaderboardRound(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                >
+                  <option value="all">All Rounds</option>
+                  {currentTrack === 'hardware' ? (
+                    <>
+                      <option value={1}>Round 1</option>
+                      <option value={2}>Round 2</option>
+                      <option value={3}>Round 3</option>
+                    </>
+                  ) : (
+                    <>
+                      <option value={2}>Round 2 (Consolidated)</option>
+                      <option value={3}>Round 3</option>
+                      <option value={4}>Round 4</option>
+                    </>
+                  )}
+                </select>
                 <button 
                   onClick={exportCSV}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10 rounded-lg text-[12.5px] text-white transition-colors"
@@ -593,7 +632,7 @@ export function JudgingConsole() {
                   <tr>
                     <th className="text-[11px] uppercase text-white/50 p-3 border-b border-white/10">#</th>
                     <th className="text-[11px] uppercase text-white/50 p-3 border-b border-white/10">Team</th>
-                    <th className="text-[11px] uppercase text-white/50 p-3 border-b border-white/10">Judges</th>
+                    <th className="text-[11px] uppercase text-white/50 p-3 border-b border-white/10">Rounds</th>
                     <th className="text-[11px] uppercase text-white/50 p-3 border-b border-white/10 text-right">Cumulative Score</th>
                     <th className="text-[11px] uppercase text-white/50 p-3 border-b border-white/10"></th>
                   </tr>
@@ -611,7 +650,16 @@ export function JudgingConsole() {
                         <tr className={`hover:bg-white/5 transition-colors ${cutoffN > 0 && i >= cutoffN ? 'opacity-60' : ''}`}>
                           <td className="p-3 border-b border-white/10 font-mono font-bold text-white/70">{i + 1}</td>
                           <td className="p-3 border-b border-white/10 text-white font-bold">{team.team_name}</td>
-                          <td className="p-3 border-b border-white/10 text-white/70">{team.rounds.length} Rounds Scored</td>
+                          <td className="p-3 border-b border-white/10 text-white/70">
+                            <div className="flex gap-1 flex-wrap">
+                              {team.rounds.map(r => (
+                                <span key={`badge-${r.score_id}`} className="bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/30 text-[10px] px-1.5 py-0.5 rounded font-bold">
+                                  R{r.round_number}
+                                </span>
+                              ))}
+                              {team.rounds.length === 0 && <span className="text-[11px] opacity-50">No Rounds Scored</span>}
+                            </div>
+                          </td>
                           <td className="p-3 border-b border-white/10 font-mono font-bold text-[16px] text-right text-[#8B5CF6]">
                             {team.total_score.toFixed(1)}
                           </td>
