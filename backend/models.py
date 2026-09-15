@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, DateTime, Enum
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Integer, Boolean, ForeignKey, DateTime, Enum, Float, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import declarative_base, relationship
 import enum
 
@@ -9,6 +9,10 @@ Base = declarative_base()
 
 class UserRole(str, enum.Enum):
     participant = "participant"
+    admin = "admin"
+
+class JudgingRole(str, enum.Enum):
+    judge = "judge"
     admin = "admin"
 
 class TrackType(str, enum.Enum):
@@ -64,6 +68,18 @@ class Team(Base):
     members = relationship("User", foreign_keys="User.team_id", back_populates="team")
     problem_statement = relationship("ProblemStatement", back_populates="teams")
     final_submission = relationship("FinalSubmission", uselist=False, back_populates="team")
+    scores = relationship("Score", back_populates="team")
+
+class ShortlistedTeam(Base):
+    __tablename__ = "shortlisted_team"
+
+    id = Column(UUID(as_uuid=True), primary_key=True)
+    name = Column(String, nullable=False)
+    join_code = Column(String(6), nullable=False)
+    leader_id = Column(UUID(as_uuid=True), nullable=False)
+    ps_id = Column(UUID(as_uuid=True), nullable=True)
+    selected_track = Column(Enum(TrackType), nullable=True)
+    current_round = Column(Integer, default=1)
 
 class FinalSubmission(Base):
     __tablename__ = "final_submissions"
@@ -71,7 +87,34 @@ class FinalSubmission(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), unique=True, nullable=False)
     github_url = Column(String, nullable=False)
-    demo_link = Column(String, nullable=False)
     submitted_at = Column(DateTime, default=datetime.utcnow)
 
     team = relationship("Team", back_populates="final_submission")
+
+class JudgingStaff(Base):
+    __tablename__ = "judging_staff"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    username = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    role = Column(Enum(JudgingRole), default=JudgingRole.judge)
+
+    scores = relationship("Score", foreign_keys="Score.judge_id", back_populates="judge")
+
+class Score(Base):
+    __tablename__ = "scores"
+    __table_args__ = (UniqueConstraint('team_id', 'round_number', name='uix_team_round'),)
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    team_id = Column(UUID(as_uuid=True), ForeignKey("teams.id"), nullable=False)
+    judge_id = Column(UUID(as_uuid=True), ForeignKey("judging_staff.id"), nullable=False)
+    judge_display_name = Column(String, nullable=True)
+    track = Column(String, nullable=False)
+    round_number = Column(Integer, nullable=False)
+    overwritten_by_admin_id = Column(UUID(as_uuid=True), ForeignKey("judging_staff.id"), nullable=True)
+    total_score = Column(Float, nullable=False)
+    breakdown = Column(JSONB, nullable=True)
+
+    team = relationship("Team", back_populates="scores")
+    judge = relationship("JudgingStaff", foreign_keys=[judge_id], back_populates="scores")
+    admin_overwriter = relationship("JudgingStaff", foreign_keys=[overwritten_by_admin_id])

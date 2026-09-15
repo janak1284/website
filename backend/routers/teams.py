@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
 from database import get_db
-from models import User, Team, FinalSubmission, TrackType
+from models import User, Team, FinalSubmission, TrackType, Score
 from auth import get_current_user
 from pydantic import BaseModel
 
@@ -36,6 +36,11 @@ def generate_join_code():
 async def create_team(req: CreateTeamRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     if user.team_id is not None:
         raise HTTPException(status_code=400, detail="You are already part of a team.")
+        
+    # Check if a team with the same name already exists
+    existing_team = await db.execute(select(Team).where(Team.name == req.name))
+    if existing_team.scalars().first():
+        raise HTTPException(status_code=400, detail="A team with this name already exists. Please choose a different name.")
         
     join_code = generate_join_code()
     
@@ -150,6 +155,14 @@ async def leave_team(user: User = Depends(get_current_user), db: AsyncSession = 
         
     if team.leader_id == user.id:
         # Leader leaves -> Disband team
+        
+        # Check if team has scores
+        score_result = await db.execute(select(Score).where(Score.team_id == team.id))
+        has_scores = score_result.scalars().first() is not None
+        
+        if has_scores:
+            raise HTTPException(status_code=400, detail="Cannot disband a team that has already been graded.")
+            
         # 1. Remove all members
         for member in team.members:
             member.team_id = None

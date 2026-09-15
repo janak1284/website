@@ -39,23 +39,23 @@ export function RootLayout() {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-4 md:p-6 pointer-events-none"
+        className="fixed top-0 left-0 right-0 z-50 flex flex-row gap-1 sm:gap-4 justify-between items-center p-2 sm:p-4 md:p-6 pointer-events-auto w-full"
       >
-        <div className="flex gap-4 pointer-events-auto bg-[#130d26]/80 backdrop-blur-md p-2 rounded-xl border border-white/10 font-display">
-           <Link to="/" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Home</Link>
-           <Link to="/guidelines" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Guidelines</Link>
-           <Link to="/tracks" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Tracks</Link>
-           <Link to="/schedule" className="text-white hover:text-[#C026D3] px-3 py-1 transition-colors">Schedule</Link>
+        <div className="flex gap-1 sm:gap-4 bg-[#130d26]/80 backdrop-blur-md p-1 sm:p-2 md:p-3 rounded-xl border border-white/10 font-display text-[10px] sm:text-sm md:text-base shrink-0">
+           <Link to="/" className="text-white hover:text-[#C026D3] px-1 sm:px-3 py-1 transition-colors whitespace-nowrap">Home</Link>
+           <Link to="/guidelines" className="text-white hover:text-[#C026D3] px-1 sm:px-3 py-1 transition-colors whitespace-nowrap">Guidelines</Link>
+           <Link to="/tracks" className="text-white hover:text-[#C026D3] px-1 sm:px-3 py-1 transition-colors whitespace-nowrap">Tracks</Link>
+           <Link to="/schedule" className="text-white hover:text-[#C026D3] px-1 sm:px-3 py-1 transition-colors whitespace-nowrap">Schedule</Link>
         </div>
         {location.pathname === '/dashboard' ? (
-          <div className="pointer-events-auto hidden md:block">
-            <Button variant="magenta" onClick={handleLogout} className="shadow-2xl">
+          <div className="block shrink-0">
+            <Button variant="magenta" onClick={handleLogout} className="shadow-2xl text-[10px] sm:text-sm md:text-base px-2 sm:px-6 py-1.5 sm:py-2 md:py-3 whitespace-nowrap h-auto min-h-0">
               Logout
             </Button>
           </div>
         ) : (
-          <Link to="/dashboard" className="pointer-events-auto hidden md:block">
-            <Button variant="primary" className="shadow-2xl">
+          <Link to="/dashboard" className="block shrink-0">
+            <Button variant="primary" className="shadow-2xl text-[10px] sm:text-sm md:text-base px-2 sm:px-6 py-1.5 sm:py-2 md:py-3 whitespace-nowrap h-auto min-h-0">
               Team Portal
             </Button>
           </Link>

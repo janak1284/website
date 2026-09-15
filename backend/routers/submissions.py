@@ -11,7 +11,6 @@ router = APIRouter(prefix="/api/submissions", tags=["submissions"])
 
 class FinalSubmissionRequest(BaseModel):
     github_url: str
-    demo_link: str
 
 @router.post("/final")
 async def submit_final(req: FinalSubmissionRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
@@ -23,12 +22,10 @@ async def submit_final(req: FinalSubmissionRequest, user: User = Depends(get_cur
     
     if submission:
         submission.github_url = req.github_url
-        submission.demo_link = req.demo_link
     else:
         submission = FinalSubmission(
             team_id=user.team_id,
-            github_url=req.github_url,
-            demo_link=req.demo_link
+            github_url=req.github_url
         )
         db.add(submission)
         

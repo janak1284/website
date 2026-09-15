@@ -36,50 +36,50 @@ export function Hero({ scrollYProgress }) {
       style={{ opacity, y }}
       className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 pointer-events-none"
     >
-      <div className="max-w-4xl mx-auto text-center pointer-events-auto mt-20">
+      <div className="max-w-4xl mx-auto text-center pointer-events-auto transform md:-translate-y-4 md:translate-x-3">
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="flex flex-col items-center"
         >
-          <motion.div variants={fadeUpVariants} className="mb-6">
-            <Badge icon={Sparkles}>Code. Create. Innovate.</Badge>
+          <motion.div variants={fadeUpVariants} className="mb-4 md:mb-6">
+            <Badge icon={Sparkles} className="text-xs md:text-sm px-4 py-2">Code. Create. Innovate.</Badge>
           </motion.div>
 
-          <motion.div variants={fadeUpVariants} className="w-full mb-8">
+          <motion.div variants={fadeUpVariants} className="w-[85%] sm:w-[90%] md:w-full mb-5 md:mb-8 mx-auto">
             <ResonanceWordmark />
           </motion.div>
 
-          <motion.div variants={fadeUpVariants} className="flex items-center gap-4 mb-8">
-            <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#8B5CF6]"></div>
-            <span className="text-xl md:text-2xl text-[#8B5CF6] font-['Orbitron'] tracking-widest uppercase">
+          <motion.div variants={fadeUpVariants} className="flex items-center justify-center gap-3 md:gap-4 mb-5 md:mb-8">
+            <div className="h-[1px] flex-1 max-w-[48px] bg-gradient-to-r from-transparent to-[#8B5CF6]"></div>
+            <span className="text-base sm:text-xl md:text-2xl text-[#8B5CF6] font-['Orbitron'] tracking-widest uppercase text-center whitespace-nowrap">
               48-Hour Hackathon
             </span>
-            <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#8B5CF6]"></div>
+            <div className="h-[1px] flex-1 max-w-[48px] bg-gradient-to-l from-transparent to-[#8B5CF6]"></div>
           </motion.div>
 
           <motion.p 
             variants={fadeUpVariants}
-            className="text-lg md:text-xl text-white/70 mb-10 max-w-2xl leading-relaxed flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6"
+            className="text-sm sm:text-base md:text-xl text-white/70 mb-8 md:mb-10 max-w-2xl leading-relaxed flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 mx-auto"
           >
             <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8B5CF6]"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8B5CF6] w-4 h-4 md:w-5 md:h-5"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
               7-9 SEP 2026
             </span>
             <span className="hidden md:inline text-white/30">•</span>
             <span className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8B5CF6]"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8B5CF6] w-4 h-4 md:w-5 md:h-5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
               VIT CHENNAI
             </span>
           </motion.p>
 
           <motion.div 
             variants={fadeUpVariants}
-            className="flex flex-col sm:flex-row items-center gap-4"
+            className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto px-6 sm:px-0"
           >
-            <a href="https://eventhubcc.vit.ac.in/EventHub/" target="_blank" rel="noopener noreferrer"><Button variant="primary">Register Now</Button></a>
-            <Link to="/live"><Button variant="secondary">View Schedule</Button></Link>
+            <a href="https://eventhubcc.vit.ac.in/EventHub/" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto"><Button variant="primary" className="w-full sm:w-auto">Register Now</Button></a>
+            <Link to="/schedule" className="w-full sm:w-auto"><Button variant="secondary" className="w-full sm:w-auto">View Schedule</Button></Link>
           </motion.div>
         </motion.div>
       </div>

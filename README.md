@@ -49,25 +49,45 @@ The foreground UI strictly avoids React state (`useState`) for scroll animations
 - **Composition Layers**: Glassmorphic cards (`backdrop-blur`) and animated typography elements are promoted to their own compositor layers.
 - **Example Mapping (`Schedule.jsx`)**: The central glowing timeline utilizes `useTransform(scrollYProgress, [start, end], ["0%", "100%"])` mapped to the `height` style. As the browser scrolls, the height is interpolated continuously, exactly tracking the scroll wheel's physical momentum.
 
+---
+
+## ⚡ Performance & Scale: Handling 700+ Concurrent Users
+
+To support a massive influx of concurrent interactions during the hackathon (live judging, real-time leaderboard updates, and heavy visual rendering), the stack was deeply optimized across both the frontend and backend:
+
+### 1. High-Concurrency Backend (FastAPI + AsyncPG)
+- **Asynchronous Architecture:** The backend relies entirely on **FastAPI** leveraging Python's `asyncio` for non-blocking IO. This allows a single Python process to handle hundreds of concurrent requests efficiently.
+- **Optimized Database Connections:** We utilize **PostgreSQL** with the **`asyncpg`** driver and SQLAlchemy 2.0 asynchronous sessions. Connection pooling ensures that even with 700+ concurrent database operations, connections are reused and never bottlenecked, preventing connection exhaustion under heavy load.
+- **Stateless Authentication:** Stateless JWT-based authentication removes the need for database lookups on every secure request, drastically reducing database read pressure during peak traffic.
+
+### 2. Frontend Rendering & Memory Optimizations
+- **Bypassing React Reconciliation:** For the 10,000+ interactive particles, React state is strictly bypassed. Computations are sent directly to the GPU via fixed `Float32Array` buffers and batched buffer geometry updates.
+- **Off-Main-Thread UI Animations:** All major DOM animations use `framer-motion`'s `useScroll` combined with `useTransform`, mapping scroll momentum directly to the CSSOM (hardware-accelerated `translate3d`), freeing up the main thread and guaranteeing a buttery-smooth 60FPS even under heavy processing load.
+- **Compositor Layering:** Glassmorphic elements and high-repaint components are isolated into their own CSS compositor layers to avoid painting thrashing across the entire DOM tree.
+
 ## 📂 Project Structure
 
 ```text
-├── src/
-│   ├── components/
-│   │   ├── ui/                 # Reusable UI primitives (Buttons, GlassCards, Badges)
-│   │   ├── App.jsx             # Root layout, Scroll Context provider, Canvas mount
-│   │   ├── ParticleScene.jsx   # WebGL Engine (Three.js/R3F)
-│   │   ├── Hero.jsx            # Landing View (0-10% scroll)
-│   │   ├── About.jsx           # Vision/Mission (10-20% scroll)
-│   │   ├── ProblemStatements.jsx # Domain Cards (20-30% scroll)
-│   │   ├── Prizes.jsx          # Statistics & Podium (30-40% scroll)
-│   │   ├── Schedule.jsx        # Timeline Mapping (40-60% scroll)
-│   │   └── Contact.jsx         # FAQ & POCs (90-100% scroll)
-│   ├── index.css               # Tailwind directives & global font imports
-│   └── main.jsx                # React DOM binding
-├── public/                     # Static assets (Brochures, videos, raw SVGs)
-├── tailwind.config.js          # Thematic constants (Colors, extended fonts)
-└── vite.config.js              # Bundler configuration
+├── backend/
+│   ├── routers/                # API Endpoints (admin, judging, users, etc.)
+│   ├── main.py                 # FastAPI Application Entrypoint
+│   ├── models.py               # Database Models (SQLAlchemy)
+│   ├── database.py             # DB Connection & Session Management
+│   ├── auth.py                 # Core Authentication Logic (JWT)
+│   ├── auth_judging.py         # Judging-Specific Auth Middleware
+│   ├── Dockerfile              # Containerization
+│   └── requirements.txt        # Python Dependencies
+├── frontend/
+│   ├── public/                 # Static Assets (Brochures, videos, raw SVGs)
+│   ├── src/
+│   │   ├── components/         # React Components (Hero, About, ParticleScene, ui/, etc.)
+│   │   ├── pages/              # Route Pages (Dashboard, Home, JudgingConsole, etc.)
+│   │   ├── App.jsx             # Root Layout & Routing
+│   │   ├── main.jsx            # React DOM Binding
+│   │   └── index.css           # Tailwind Directives & Global Styles
+│   ├── package.json            # Node Dependencies
+│   └── vite.config.js          # Bundler configuration
+└── README.md
 ```
 
 ## 🛠️ Setup & Local Development

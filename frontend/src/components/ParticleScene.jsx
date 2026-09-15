@@ -237,7 +237,7 @@ export function ParticleScene({ scrollYProgress, pathname }) {
         let localProgress = (triggerOffset - start) / (sectionHeight || 1);
 
         localProgress = Math.max(0, Math.min(1, localProgress));
-        scrollRotationOffset = localProgress * Math.PI * 4;
+        scrollRotationOffset = localProgress * -Math.PI * 4;
       }
     }
 
@@ -245,7 +245,16 @@ export function ParticleScene({ scrollYProgress, pathname }) {
       const mouseX = (state.pointer.x * Math.PI) / 10;
       const mouseY = (state.pointer.y * Math.PI) / 10;
 
-      const targetRotationY = scrollRotationOffset + mouseX;
+      let targetRotationY = (scrollRotationOffset + mouseX) % (Math.PI * 2);
+      
+      groupRef.current.rotation.y = groupRef.current.rotation.y % (Math.PI * 2);
+      
+      const deltaY = targetRotationY - groupRef.current.rotation.y;
+      if (deltaY > Math.PI) {
+        targetRotationY -= Math.PI * 2;
+      } else if (deltaY < -Math.PI) {
+        targetRotationY += Math.PI * 2;
+      }
 
       groupRef.current.rotation.y = THREE.MathUtils.damp(
         groupRef.current.rotation.y,
@@ -278,14 +287,15 @@ export function ParticleScene({ scrollYProgress, pathname }) {
     const repelRadius = prefersReducedMotion ? 1.0 : 1.5;
     const repelStrength = prefersReducedMotion ? 0.2 : 0.6;
     const breathingAmplitude = prefersReducedMotion ? 0 : 0.08 + scroll * 0.05;
+    const mobileScale = window.innerWidth < 768 ? (window.innerWidth / 768) * 0.55 + 0.2 : 1.0;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const idx = i * 3;
 
       // Interpolate Target Position
-      let targetX = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx], shapes[nextShapeIdx][idx], lerpFactor);
-      let targetY = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 1], shapes[nextShapeIdx][idx + 1], lerpFactor);
-      let targetZ = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 2], shapes[nextShapeIdx][idx + 2], lerpFactor);
+      let targetX = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx], shapes[nextShapeIdx][idx], lerpFactor) * mobileScale;
+      let targetY = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 1], shapes[nextShapeIdx][idx + 1], lerpFactor) * mobileScale;
+      let targetZ = THREE.MathUtils.lerp(shapes[currentShapeIdx][idx + 2], shapes[nextShapeIdx][idx + 2], lerpFactor) * mobileScale;
 
       if (!prefersReducedMotion) {
         // Continuous additive idle breathing wave

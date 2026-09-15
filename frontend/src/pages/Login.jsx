@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { GlassCard } from '../components/ui/GlassCard';
+import { toast } from 'react-hot-toast';
 
 export function Login() {
   const navigate = useNavigate();
@@ -14,21 +15,27 @@ export function Login() {
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
       
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('access_token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        if (data.is_new_user) {
-          navigate('/onboarding');
+      if (!res.ok) {
+        if (res.status === 403) {
+          toast.error("Login failed: Access denied. Email not registered as a paid participant. Please log in with the exact email you registered with.");
         } else {
-          navigate('/dashboard');
+          const errorData = await res.json();
+          toast.error(errorData.detail || "Authentication failed. Please try again.");
         }
+        return; 
+      }
+      
+      const data = await res.json();
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.is_new_user) {
+        navigate('/onboarding');
       } else {
-        alert("Login failed: " + data.detail);
+        navigate('/dashboard');
       }
     } catch (err) {
       console.error(err);
-      alert("Network error connecting to backend.");
+      toast.error("Network error connecting to the server.");
     }
   };
 
@@ -42,7 +49,7 @@ export function Login() {
         <GoogleLogin
           onSuccess={handleSuccess}
           onError={() => {
-            alert('Google Login Failed');
+            toast.error('Google Login Failed');
           }}
           useOneTap
         />
